@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InCaseYou - New Letter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gorditas:wght@400;700&family=Great+Vibes&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="newletter">
+    <div id="app">
+        <section class="view active">
+            <div class="page-wrapper">
+                <header class="top-center-header">
+                    <div class="logo">incaseyou</div>
+                </header>
+
+                <main class="content-main">
+                    <div class="narrow-content">
+                        <h1 class="main-heading">new letter</h1>
+
+                        <form id="new-letter-form" class="form-container letter-form">
+                            <div class="input-group full-width">
+                                <div class="label-row uppercase-label">
+                                    <label for="input-subtitle">IN CASE YOU...</label>
+                                    <span class="char-counter"><span id="subtitle-counter">0</span>/65</span>
+                                </div>
+                                <input type="text" id="input-subtitle" placeholder="e.g., you need motivation" maxlength="65" required autocomplete="off">
+                            </div>
+
+                            <!-- Envelope Preview -->
+                            <div class="envelope-preview">
+                                <div class="envelope-body">
+                                    <p class="envelope-prefix">in case you...</p>
+                                    <p class="envelope-text" id="envelope-live-text">e.g., you need motivation</p>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn-primary mt-large">CONTINUE &rarr;</button>
+                        </form>
+                    </div>
+                </main>
+            </div>
+        </section>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>

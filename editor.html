@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InCaseYou - Editor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gorditas:wght@400;700&family=Great+Vibes&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+</head>
+<body data-page="editor" class="editor-body">
+    <div class="editor-layout">
+        <!-- Editor Header / Back Button -->
+        <header class="editor-header">
+            <button id="btn-back-collection" class="btn-icon-text">&larr; <span id="editor-title-display">open when you miss me</span></button>
+            <div class="header-right">
+                <span class="status-text">SAVED</span>
+                <button class="btn-icon">✏️</button>
+                <button class="btn-icon">🗑️</button>
+                <button class="btn-icon">👁️</button>
+                <button class="btn-outline btn-small">UNPUBLISH</button>
+            </div>
+        </header>
+
+        <div class="editor-main-area">
+            <!-- Left Sidebar -->
+            <aside class="editor-sidebar">
+                <section class="sidebar-section">
+                    <h3 class="sidebar-title">ELEMENTS</h3>
+                    <div class="elements-grid">
+                        <button class="element-btn"><span class="icon">T</span>TEXT</button>
+                        <button class="element-btn"><span class="icon">🔗</span>LINK</button>
+                        <button class="element-btn"><span class="icon">🖼️</span>IMAGE</button>
+                        <button class="element-btn"><span class="icon">🎤</span>AUDIO</button>
+                        <button class="element-btn"><span class="icon">🎥</span>VIDEO</button>
+                    </div>
+                </section>
+
+                <section class="sidebar-section">
+                    <div class="sidebar-title-row">
+                        <h3 class="sidebar-title">STICKERS</h3>
+                        <div class="scroll-controls">
+                            <button>&lt;</button>
+                            <button>&gt;</button>
+                        </div>
+                    </div>
+                    <div class="stickers-gallery" id="stickers-gallery">
+                        <!-- Stickers will be injected here. For now, placeholders. -->
+                        <div class="sticker-thumb" data-src="images/envelope.png" style="background-image: url('images/envelope.png');"></div>
+                    </div>
+                </section>
+
+                <section class="sidebar-section">
+                    <div class="sidebar-title-row">
+                        <h3 class="sidebar-title">PHOTOCARD</h3>
+                        <input type="checkbox" id="toggle-photocard" class="styled-checkbox">
+                    </div>
+                    <div class="photocard-upload-area hidden" id="photocard-upload-area">
+                        <input type="file" id="photocard-input" accept="image/*" hidden>
+                        <button id="btn-upload-photocard" class="dashed-upload-box">
+                            <span class="icon-plus">⊕</span>
+                            ADD IMAGE
+                        </button>
+                    </div>
+                </section>
+
+                <section class="sidebar-section">
+                    <h3 class="sidebar-title">BACKGROUND</h3>
+                    <div class="backgrounds-gallery" id="backgrounds-gallery">
+                        <!-- Background swatches injected here -->
+                        <button class="bg-swatch add-bg" id="btn-add-bg">+</button>
+                        <input type="file" id="bg-input" accept="image/*" hidden>
+                    </div>
+                </section>
+            </aside>
+
+            <!-- Canvas Area -->
+            <main class="editor-canvas-container" id="editor-canvas-container">
+                <div class="editor-canvas-wrapper" id="editor-canvas-wrapper">
+                    <!-- The actual letter paper -->
+                    <div class="letter-paper" id="letter-paper">
+                        <!-- Draggable elements go here -->
+                    </div>
+                </div>
+
+                <!-- Floating Controls -->
+                <div class="floating-controls">
+                    <button class="control-btn active">👆</button>
+                    <button class="control-btn">✥</button>
+                    <button class="control-btn">🔍-</button>
+                    <button class="control-btn">🔍+</button>
+                    <button class="control-btn">⛶</button>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>
