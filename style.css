@@ -131,6 +131,13 @@ body[data-page="newletter"] .content-main {
     justify-content: center;
 }
 
+body[data-page="collection"] .content-main {
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding-top: 4rem;
+    padding-left: 2rem;
+}
+
 .narrow-content {
     width: 100%;
     max-width: 440px;
@@ -335,7 +342,8 @@ button {
 
 /* Collection Specifics */
 .collection-wrapper {
-    max-width: 650px;
+    max-width: 1000px;
+    width: 100%;
 }
 
 .collection-main {
@@ -348,7 +356,9 @@ button {
 }
 
 .recipient-info .muted-description {
-    margin-top: 0;
+    margin-top: -0.2rem;
+    font-size: 0.95rem;
+    opacity: 0.7;
 }
 
 .letters-grid {
@@ -360,10 +370,10 @@ button {
 }
 
 .letters-grid.empty {
-    flex-grow: 1;
+    width: 100%;
     align-items: center;
     justify-content: center;
-    margin-top: 0;
+    margin-top: 6rem;
 }
 
 .empty-state {
@@ -377,10 +387,11 @@ button {
 }
 
 .signature {
-    margin-top: 3rem;
-    align-self: flex-end;
+    position: fixed;
+    bottom: 48px;
+    right: 60px;
     text-align: right;
-    padding-right: 1rem;
+    margin: 0;
 }
 
 .from-label {
