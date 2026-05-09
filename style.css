@@ -29,10 +29,10 @@ body {
 /* Typography Hierarchy */
 .main-heading {
     font-family: var(--font-heading);
-    font-size: 3.2rem;
-    font-weight: 700;
+    font-size: 2.5rem;
+    font-weight: 600;
     letter-spacing: -0.02em;
-    margin-bottom: 2.5rem;
+    margin-bottom: 1.5rem;
     color: var(--primary-brown);
 }
 
@@ -42,7 +42,18 @@ body {
 
 .logo {
     font-family: var(--font-logo);
-    font-size: 2rem;
+    font-size: 1.6rem;
+    color: var(--muted-brown);
+    opacity: 0.6;
+    user-select: none;
+}
+
+.absolute-logo {
+    position: absolute;
+    top: 40px;
+    left: 48px;
+    font-family: var(--font-logo);
+    font-size: 1.6rem;
     color: var(--muted-brown);
     opacity: 0.6;
     user-select: none;
@@ -82,7 +93,7 @@ body {
 
 .page-wrapper {
     width: 100%;
-    max-width: 650px;
+    max-width: 500px;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
@@ -90,8 +101,8 @@ body {
 
 .top-center-header {
     text-align: center;
-    padding-top: 1rem;
-    margin-bottom: 2rem;
+    padding-top: 0;
+    margin-bottom: 1.5rem;
 }
 
 .collection-header {
@@ -110,8 +121,21 @@ body {
 .content-main {
     display: flex;
     flex-direction: column;
+    align-items: center;
     flex-grow: 1;
     width: 100%;
+}
+
+body[data-page="landing"] .content-main,
+body[data-page="newletter"] .content-main {
+    justify-content: center;
+}
+
+.narrow-content {
+    width: 100%;
+    max-width: 440px;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Forms & Inputs */
@@ -125,8 +149,8 @@ body {
 .input-row {
     display: flex;
     width: 100%;
-    gap: 2rem;
-    margin-bottom: 2rem;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
 }
 
 .input-group {
@@ -142,41 +166,37 @@ body {
 .label-row {
     display: flex;
     justify-content: space-between;
+    align-items: baseline;
     width: 100%;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.4rem;
 }
 
 label {
-    font-family: var(--font-heading);
-    font-size: 1.3rem;
-    color: var(--primary-brown);
-    font-weight: 600;
-    margin-bottom: 0.6rem;
-    display: block;
-    opacity: 0.7;
-}
-
-.uppercase-label label {
     font-family: var(--font-body);
-    font-size: 0.85rem;
+    font-size: 0.75rem;
+    color: var(--muted-brown);
     font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--muted-brown);
+    letter-spacing: 0.04em;
+    margin-bottom: 0.4rem;
+    display: block;
+    opacity: 0.8;
 }
 
 .char-counter {
-    font-size: 0.85rem;
+    font-family: var(--font-body);
+    font-size: 0.7rem;
     color: var(--muted-brown);
+    opacity: 0.6;
 }
 
 input {
     background: transparent;
-    border: 1px solid rgba(150, 133, 113, 0.4);
+    border: 1px solid rgba(150, 133, 113, 0.3);
     border-radius: 30px;
-    padding: 1.2rem 1.8rem;
+    padding: 0.9rem 1.4rem;
     font-family: var(--font-body);
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     color: var(--primary-brown);
     outline: none;
     transition: all 0.3s ease;
@@ -195,11 +215,11 @@ input:focus {
 /* Buttons */
 button {
     font-family: var(--font-body);
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     font-weight: 500;
     letter-spacing: 0.08em;
     border-radius: 30px;
-    padding: 1rem 2.5rem;
+    padding: 0.8rem 2.2rem;
     cursor: pointer;
     transition: all 0.3s ease;
     text-transform: uppercase;
@@ -210,6 +230,7 @@ button {
     color: var(--bg-color);
     border: none;
     align-self: center;
+    margin-top: 1rem;
 }
 
 .btn-primary:hover {
@@ -250,7 +271,7 @@ button {
 }
 
 .mt-large {
-    margin-top: 3.5rem;
+    margin-top: 1rem;
 }
 
 /* Envelope Cards */
@@ -314,7 +335,7 @@ button {
 
 /* Collection Specifics */
 .collection-wrapper {
-    max-width: 850px;
+    max-width: 650px;
 }
 
 .collection-main {
@@ -782,6 +803,222 @@ button {
     outline: none;
     min-width: 100px;
     min-height: 40px;
+}
+
+/* Rotation Handle */
+.rotate-handle {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    background-color: #fff;
+    border: 2px solid rgba(134, 97, 68, 0.6);
+    border-radius: 50%;
+    cursor: grab;
+    display: none;
+    z-index: 101;
+}
+
+.draggable.selected .rotate-handle {
+    display: block;
+}
+
+.rotate-handle::after {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 4px;
+    width: 2px;
+    height: 18px;
+    background-color: rgba(134, 97, 68, 0.4);
+}
+
+/* Floating Text Toolbar */
+.floating-toolbar {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(150, 133, 113, 0.15);
+    border-radius: 30px;
+    padding: 0.5rem 1rem;
+    box-shadow: 0 8px 30px rgba(134, 97, 68, 0.12);
+    gap: 1rem;
+    z-index: 1000;
+    transform: translateX(-50%);
+    transition: opacity 0.2s ease, top 0.1s ease, left 0.1s ease;
+}
+
+.floating-toolbar.hidden {
+    opacity: 0;
+    pointer-events: none;
+    display: none;
+}
+
+.toolbar-section {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    border-right: 1px solid rgba(150, 133, 113, 0.2);
+    padding-right: 1rem;
+}
+
+.toolbar-section:last-child {
+    border-right: none;
+    padding-right: 0;
+}
+
+/* Toolbar Buttons */
+.toolbar-icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--primary-brown);
+    font-size: 1.1rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.toolbar-icon-btn:hover {
+    background: rgba(150, 133, 113, 0.1);
+}
+
+.toolbar-icon-btn.danger {
+    color: #b05c5c;
+}
+
+.toolbar-icon-btn.danger:hover {
+    background: rgba(176, 92, 92, 0.1);
+}
+
+.toolbar-icon-btn.active {
+    background: rgba(134, 97, 68, 0.15);
+}
+
+/* Color Picker */
+.color-picker-wrapper {
+    position: relative;
+}
+
+.color-preview-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1px solid rgba(150, 133, 113, 0.3);
+    cursor: pointer;
+    background-color: var(--primary-brown);
+}
+
+.color-palette {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    background: #fff;
+    border-radius: 12px;
+    padding: 0.8rem;
+    display: flex;
+    gap: 0.5rem;
+    box-shadow: 0 4px 15px rgba(134, 97, 68, 0.1);
+    border: 1px solid rgba(150, 133, 113, 0.15);
+}
+
+.color-palette.hidden {
+    display: none;
+}
+
+.color-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid rgba(150, 133, 113, 0.2);
+    transition: transform 0.2s;
+}
+
+.color-swatch:hover {
+    transform: scale(1.1);
+}
+
+/* Custom Dropdowns */
+.custom-dropdown {
+    position: relative;
+}
+
+.dropdown-trigger {
+    background: transparent;
+    border: none;
+    color: var(--primary-brown);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 8px;
+}
+
+.dropdown-trigger:hover {
+    background: rgba(150, 133, 113, 0.1);
+}
+
+.dropdown-trigger .arrow {
+    font-size: 0.6rem;
+    color: var(--muted-brown);
+}
+
+.dropdown-list {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    border-radius: 12px;
+    padding: 0.5rem 0;
+    box-shadow: 0 4px 15px rgba(134, 97, 68, 0.1);
+    border: 1px solid rgba(150, 133, 113, 0.15);
+    list-style: none;
+    min-width: 140px;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 1001;
+}
+
+.font-dropdown .dropdown-list {
+    min-width: 180px;
+}
+
+.dropdown-list.hidden {
+    display: none;
+}
+
+.dropdown-list li {
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    color: var(--primary-brown);
+    font-size: 0.95rem;
+    transition: background 0.2s;
+}
+
+.dropdown-list li:hover {
+    background: rgba(150, 133, 113, 0.08);
+}
+
+/* Custom Scrollbar for dropdown */
+.dropdown-list::-webkit-scrollbar {
+    width: 6px;
+}
+.dropdown-list::-webkit-scrollbar-thumb {
+    background-color: rgba(150, 133, 113, 0.3);
+    border-radius: 6px;
 }
 
 /* Responsive */

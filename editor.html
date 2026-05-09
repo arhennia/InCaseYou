@@ -6,7 +6,8 @@
     <title>InCaseYou - Editor</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Gorditas:wght@400;700&family=Great+Vibes&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Gorditas:wght@400;700&family=Great+Vibes&family=Inter:wght@300;400;500&family=Nunito:wght@400;600&family=Cedarville+Cursive&family=La+Belle+Aurore&family=Space+Mono&family=Roboto+Mono&family=Patrick+Hand&family=Indie+Flower&family=Instrument+Serif&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/geist@1.0.3/dist/fonts/geist-sans/style.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 </head>
@@ -82,6 +83,77 @@
                     <!-- The actual letter paper -->
                     <div class="letter-paper" id="letter-paper">
                         <!-- Draggable elements go here -->
+                    </div>
+                </div>
+
+                <!-- Floating Text Toolbar -->
+                <div id="text-formatting-toolbar" class="floating-toolbar hidden">
+                    <div class="toolbar-section">
+                        <!-- Color Picker -->
+                        <div class="color-picker-wrapper">
+                            <button id="toolbar-color-btn" class="color-preview-btn"></button>
+                            <div id="color-palette" class="color-palette hidden">
+                                <div class="color-swatch" style="background-color: #866144;" data-color="#866144"></div>
+                                <div class="color-swatch" style="background-color: #968571;" data-color="#968571"></div>
+                                <div class="color-swatch" style="background-color: rgba(134, 97, 68, 0.7);" data-color="rgba(134, 97, 68, 0.7)"></div>
+                                <div class="color-swatch" style="background-color: rgba(150, 133, 113, 0.5);" data-color="rgba(150, 133, 113, 0.5)"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="toolbar-section">
+                        <!-- Font Family -->
+                        <div class="custom-dropdown font-dropdown">
+                            <button id="font-family-btn" class="dropdown-trigger"><span id="font-family-display">Geist</span> <span class="arrow">▼</span></button>
+                            <ul id="font-family-list" class="dropdown-list hidden">
+                                <li style="font-family: 'Geist Sans', sans-serif;" data-value="'Geist Sans', sans-serif">Geist</li>
+                                <li style="font-family: 'Nunito', sans-serif;" data-value="'Nunito', sans-serif">Nunito</li>
+                                <li style="font-family: 'Cedarville Cursive', cursive;" data-value="'Cedarville Cursive', cursive">Cedarville Cursive</li>
+                                <li style="font-family: 'La Belle Aurore', cursive;" data-value="'La Belle Aurore', cursive">La Belle Aurore</li>
+                                <li style="font-family: 'Space Mono', monospace;" data-value="'Space Mono', monospace">Space Mono</li>
+                                <li style="font-family: 'Roboto Mono', monospace;" data-value="'Roboto Mono', monospace">Roboto Mono</li>
+                                <li style="font-family: 'Patrick Hand', cursive;" data-value="'Patrick Hand', cursive">Patrick Hand</li>
+                                <li style="font-family: 'Indie Flower', cursive;" data-value="'Indie Flower', cursive">Indie Flower</li>
+                                <li style="font-family: 'Instrument Serif', serif;" data-value="'Instrument Serif', serif">Instrument Serif</li>
+                                <li style="font-family: 'Playfair Display', serif;" data-value="'Playfair Display', serif">Playfair Display</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="toolbar-section">
+                        <!-- Font Size -->
+                        <div class="custom-dropdown size-dropdown">
+                            <button id="font-size-btn" class="dropdown-trigger"><span id="font-size-display">24</span> <span class="arrow">▼</span></button>
+                            <ul id="font-size-list" class="dropdown-list hidden">
+                                <li data-value="14">14</li>
+                                <li data-value="18">18</li>
+                                <li data-value="24">24</li>
+                                <li data-value="32">32</li>
+                                <li data-value="48">48</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="toolbar-section">
+                        <!-- Styling -->
+                        <button class="toolbar-icon-btn format-btn" data-format="bold"><b>B</b></button>
+                        <button class="toolbar-icon-btn format-btn" data-format="italic"><i>I</i></button>
+                        <button class="toolbar-icon-btn format-btn" data-format="underline"><u>U</u></button>
+                    </div>
+
+                    <div class="toolbar-section">
+                        <!-- Alignment -->
+                        <button class="toolbar-icon-btn format-btn" data-format="align-left">⫷</button>
+                        <button class="toolbar-icon-btn format-btn" data-format="align-center">≡</button>
+                        <button class="toolbar-icon-btn format-btn" data-format="align-right">⫸</button>
+                    </div>
+
+                    <div class="toolbar-section">
+                        <!-- Actions -->
+                        <button class="toolbar-icon-btn action-btn" data-action="layer-up">⇧</button>
+                        <button class="toolbar-icon-btn action-btn" data-action="layer-down">⇩</button>
+                        <button class="toolbar-icon-btn action-btn" data-action="duplicate">⧉</button>
+                        <button class="toolbar-icon-btn action-btn danger" data-action="delete">🗑</button>
                     </div>
                 </div>
 

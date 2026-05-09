@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
         currentLetterId: null
     };
 
-    // Load state from local storage
     const savedState = localStorage.getItem('incaseyou_state');
     if (savedState) {
         try {
@@ -33,7 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const inputNote = document.getElementById('input-note');
         const noteCounter = document.getElementById('note-counter');
 
-        // Pre-fill
         if (appState.for) inputFor.value = appState.for;
         if (appState.from) inputFrom.value = appState.from;
         if (appState.note) {
@@ -61,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- COLLECTION PAGE ---
     if (page === 'collection') {
-        // Enforce state
         if (!appState.for || !appState.from) {
             window.location.href = 'index.html';
             return;
@@ -141,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const newLetter = {
                     id: Date.now().toString(),
                     subtitle: inputSubtitle.value.trim(),
-                    content: [],
+                    content: [], // serialized elements go here
                     background: null
                 };
                 if (!appState.letters) appState.letters = [];
@@ -163,16 +160,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('editor-title-display').textContent = currentLetter.subtitle || 'new letter';
 
-        document.getElementById('btn-back-collection').addEventListener('click', () => {
+        // Saving logic
+        const saveEditorAndGoBack = () => {
+            currentLetter.content = serializeCanvas();
+            currentLetter.background = document.getElementById('editor-canvas-container').style.backgroundImage || document.getElementById('editor-canvas-container').style.backgroundColor;
+            saveState();
             window.location.href = 'collection.html';
-        });
+        };
 
-        // Initialize editor logic
+        document.getElementById('btn-back-collection').addEventListener('click', saveEditorAndGoBack);
+        
+        // Auto-save periodically
+        setInterval(() => {
+            currentLetter.content = serializeCanvas();
+            currentLetter.background = document.getElementById('editor-canvas-container').style.backgroundImage || document.getElementById('editor-canvas-container').style.backgroundColor;
+            saveState();
+        }, 5000);
+
         initEditor(currentLetter);
+        deserializeCanvas(currentLetter.content);
+        if(currentLetter.background) {
+            const container = document.getElementById('editor-canvas-container');
+            if (currentLetter.background.includes('url')) {
+                container.style.backgroundImage = currentLetter.background;
+                container.style.backgroundSize = 'cover';
+                container.style.backgroundPosition = 'center';
+            } else {
+                container.style.backgroundColor = currentLetter.background;
+            }
+        }
     }
 });
 
 // --- EDITOR LOGIC ---
+let currentSelectedElement = null;
+
 function initEditor(letterData) {
     const photocardToggle = document.getElementById('toggle-photocard');
     const photocardUploadArea = document.getElementById('photocard-upload-area');
@@ -181,8 +203,6 @@ function initEditor(letterData) {
     
     const bgInput = document.getElementById('bg-input');
     const btnAddBg = document.getElementById('btn-add-bg');
-
-    const paper = document.getElementById('letter-paper');
 
     // Add Text Element
     const textBtns = document.querySelectorAll('.element-btn');
@@ -194,49 +214,38 @@ function initEditor(letterData) {
         }
     });
 
-    // Photocard Toggle
+    // Toggle Photocard
     if (photocardToggle) {
         photocardToggle.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                photocardUploadArea.classList.remove('hidden');
-            } else {
-                photocardUploadArea.classList.add('hidden');
-            }
+            if (e.target.checked) photocardUploadArea.classList.remove('hidden');
+            else photocardUploadArea.classList.add('hidden');
         });
     }
 
-    // Photocard Upload
+    // Uploads
     if (btnUploadPhotocard && photocardInput) {
-        btnUploadPhotocard.addEventListener('click', () => {
-            photocardInput.click();
-        });
-
+        btnUploadPhotocard.addEventListener('click', () => photocardInput.click());
         photocardInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    addPhotocardToCanvas(e.target.result);
-                };
+                reader.onload = (e) => addPhotocardToCanvas(e.target.result);
                 reader.readAsDataURL(file);
             }
         });
     }
 
-    // Background Upload
     if (btnAddBg && bgInput) {
-        btnAddBg.addEventListener('click', () => {
-            bgInput.click();
-        });
-
+        btnAddBg.addEventListener('click', () => bgInput.click());
         bgInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    document.getElementById('editor-canvas-container').style.backgroundImage = `url(${e.target.result})`;
-                    document.getElementById('editor-canvas-container').style.backgroundSize = 'cover';
-                    document.getElementById('editor-canvas-container').style.backgroundPosition = 'center';
+                    const c = document.getElementById('editor-canvas-container');
+                    c.style.backgroundImage = `url(${e.target.result})`;
+                    c.style.backgroundSize = 'cover';
+                    c.style.backgroundPosition = 'center';
                 };
                 reader.readAsDataURL(file);
             }
@@ -244,39 +253,34 @@ function initEditor(letterData) {
     }
 
     // Background Swatches
-    const swatches = document.querySelectorAll('.bg-swatch:not(.add-bg)');
-    swatches.forEach(swatch => {
+    document.querySelectorAll('.bg-swatch:not(.add-bg)').forEach(swatch => {
         swatch.addEventListener('click', (e) => {
-            // Apply color/image from swatch
             const bg = getComputedStyle(e.target).backgroundColor;
-            document.getElementById('editor-canvas-container').style.backgroundImage = 'none';
-            document.getElementById('editor-canvas-container').style.backgroundColor = bg;
+            const c = document.getElementById('editor-canvas-container');
+            c.style.backgroundImage = 'none';
+            c.style.backgroundColor = bg;
         });
     });
 
-    // interact.js logic for draggable elements
+    // interact.js for dragging & resizing
     if (typeof interact !== 'undefined') {
         interact('.draggable')
             .draggable({
                 inertia: true,
-                modifiers: [
-                    interact.modifiers.restrictRect({
-                        restriction: 'parent',
-                        endOnly: true
-                    })
-                ],
+                ignoreFrom: '.rotate-handle, .editable-text',
+                modifiers: [ interact.modifiers.restrictRect({ restriction: 'parent', endOnly: true }) ],
                 autoScroll: true,
-                listeners: {
+                listeners: { 
                     move: dragMoveListener,
+                    end: updateToolbarPosition
                 }
             })
             .resizable({
                 edges: { left: true, right: true, bottom: true, top: true },
                 modifiers: [
                     interact.modifiers.restrictEdges({ outer: 'parent' }),
-                    interact.modifiers.restrictSize({ min: { width: 50, height: 50 } })
+                    interact.modifiers.restrictSize({ min: { width: 50, height: 30 } })
                 ],
-                inertia: true,
                 listeners: {
                     move(event) {
                         let target = event.target;
@@ -291,85 +295,341 @@ function initEditor(letterData) {
                         y += event.deltaRect.top;
 
                         target.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
-
                         target.setAttribute('data-x', x);
                         target.setAttribute('data-y', y);
-                    }
+                    },
+                    end: updateToolbarPosition
                 }
             });
-
-        // Add a simple rotation logic (Ctrl+Drag or similar in full implementation, but for now we apply default rotations on creation)
     }
 
-    // Deselect elements when clicking canvas
+    // Deselect elements when clicking outside
     document.getElementById('editor-canvas-container').addEventListener('mousedown', (e) => {
         if(e.target.id === 'editor-canvas-container' || e.target.id === 'letter-paper' || e.target.id === 'editor-canvas-wrapper') {
             document.querySelectorAll('.draggable').forEach(el => el.classList.remove('selected'));
+            currentSelectedElement = null;
+            document.getElementById('text-formatting-toolbar').classList.add('hidden');
         }
     });
+
+    initTextToolbar();
 }
 
 function dragMoveListener(event) {
-    var target = event.target;
-    var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-    var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-    var angle = (parseFloat(target.getAttribute('data-angle')) || 0);
+    const target = event.target;
+    // Don't drag if we are dragging the rotate handle
+    if(event.target.classList.contains('rotate-handle')) return;
+
+    const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+    const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+    const angle = (parseFloat(target.getAttribute('data-angle')) || 0);
 
     target.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
-
     target.setAttribute('data-x', x);
     target.setAttribute('data-y', y);
+    updateToolbarPosition();
 }
 
 function selectElement(el) {
     document.querySelectorAll('.draggable').forEach(item => item.classList.remove('selected'));
     el.classList.add('selected');
+    currentSelectedElement = el;
+
+    if (el.classList.contains('text-item')) {
+        showTextToolbar(el);
+    } else {
+        document.getElementById('text-formatting-toolbar').classList.add('hidden');
+    }
 }
 
-function addPhotocardToCanvas(imgSrc) {
+function updateToolbarPosition() {
+    if(!currentSelectedElement || !currentSelectedElement.classList.contains('text-item')) return;
+    
+    const toolbar = document.getElementById('text-formatting-toolbar');
+    if(toolbar.classList.contains('hidden')) return;
+
+    const rect = currentSelectedElement.getBoundingClientRect();
+    toolbar.style.top = (rect.top - 65) + 'px';
+    toolbar.style.left = (rect.left + (rect.width / 2)) + 'px';
+}
+
+function showTextToolbar(el) {
+    const toolbar = document.getElementById('text-formatting-toolbar');
+    toolbar.classList.remove('hidden');
+    updateToolbarPosition();
+    
+    // Update toolbar active states based on element
+    const textNode = el.querySelector('.editable-text');
+    if(!textNode) return;
+
+    // Reset dropdowns
+    document.querySelectorAll('.dropdown-list').forEach(l => l.classList.add('hidden'));
+    document.getElementById('color-palette').classList.add('hidden');
+}
+
+function initTextToolbar() {
+    // Dropdowns
+    const dropdownTriggers = document.querySelectorAll('.dropdown-trigger');
+    dropdownTriggers.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const list = btn.nextElementSibling;
+            document.querySelectorAll('.dropdown-list, .color-palette').forEach(l => {
+                if(l !== list) l.classList.add('hidden');
+            });
+            list.classList.toggle('hidden');
+        });
+    });
+
+    // Font Family Select
+    document.querySelectorAll('#font-family-list li').forEach(li => {
+        li.addEventListener('click', () => {
+            if(currentSelectedElement && currentSelectedElement.classList.contains('text-item')) {
+                const font = li.getAttribute('data-value');
+                currentSelectedElement.querySelector('.editable-text').style.fontFamily = font;
+                document.getElementById('font-family-display').textContent = li.textContent;
+            }
+            li.parentElement.classList.add('hidden');
+        });
+    });
+
+    // Font Size Select
+    document.querySelectorAll('#font-size-list li').forEach(li => {
+        li.addEventListener('click', () => {
+            if(currentSelectedElement && currentSelectedElement.classList.contains('text-item')) {
+                const size = li.getAttribute('data-value');
+                currentSelectedElement.querySelector('.editable-text').style.fontSize = size + 'px';
+                document.getElementById('font-size-display').textContent = size;
+            }
+            li.parentElement.classList.add('hidden');
+        });
+    });
+
+    // Color Picker
+    document.getElementById('toolbar-color-btn').addEventListener('click', () => {
+        const p = document.getElementById('color-palette');
+        document.querySelectorAll('.dropdown-list').forEach(l => l.classList.add('hidden'));
+        p.classList.toggle('hidden');
+    });
+
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+        swatch.addEventListener('click', () => {
+            if(currentSelectedElement && currentSelectedElement.classList.contains('text-item')) {
+                const color = swatch.getAttribute('data-color');
+                currentSelectedElement.querySelector('.editable-text').style.color = color;
+                document.getElementById('toolbar-color-btn').style.backgroundColor = color;
+            }
+            document.getElementById('color-palette').classList.add('hidden');
+        });
+    });
+
+    // Formatting Buttons
+    document.querySelectorAll('.format-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if(!currentSelectedElement || !currentSelectedElement.classList.contains('text-item')) return;
+            const format = btn.getAttribute('data-format');
+            const textNode = currentSelectedElement.querySelector('.editable-text');
+            
+            if(format === 'bold') {
+                textNode.style.fontWeight = textNode.style.fontWeight === 'bold' ? 'normal' : 'bold';
+                btn.classList.toggle('active');
+            }
+            if(format === 'italic') {
+                textNode.style.fontStyle = textNode.style.fontStyle === 'italic' ? 'normal' : 'italic';
+                btn.classList.toggle('active');
+            }
+            if(format === 'underline') {
+                textNode.style.textDecoration = textNode.style.textDecoration === 'underline' ? 'none' : 'underline';
+                btn.classList.toggle('active');
+            }
+            if(format.startsWith('align-')) {
+                const align = format.split('-')[1];
+                textNode.style.textAlign = align;
+            }
+        });
+    });
+
+    // Actions
+    document.querySelectorAll('.action-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if(!currentSelectedElement) return;
+            const action = btn.getAttribute('data-action');
+            
+            let z = parseInt(currentSelectedElement.style.zIndex || 10);
+            if(action === 'layer-up') {
+                currentSelectedElement.style.zIndex = z + 1;
+            }
+            if(action === 'layer-down') {
+                currentSelectedElement.style.zIndex = Math.max(1, z - 1);
+            }
+            if(action === 'duplicate') {
+                const clone = currentSelectedElement.cloneNode(true);
+                const x = (parseFloat(clone.getAttribute('data-x')) || 0) + 20;
+                const y = (parseFloat(clone.getAttribute('data-y')) || 0) + 20;
+                const angle = clone.getAttribute('data-angle');
+                
+                clone.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
+                clone.setAttribute('data-x', x);
+                clone.setAttribute('data-y', y);
+                
+                bindElementInteractions(clone);
+                document.getElementById('letter-paper').appendChild(clone);
+                selectElement(clone);
+            }
+            if(action === 'delete') {
+                currentSelectedElement.remove();
+                currentSelectedElement = null;
+                document.getElementById('text-formatting-toolbar').classList.add('hidden');
+            }
+        });
+    });
+}
+
+function bindElementInteractions(wrapper) {
+    wrapper.addEventListener('mousedown', () => selectElement(wrapper));
+    
+    const textNode = wrapper.querySelector('.editable-text');
+    if(textNode) {
+        textNode.addEventListener('mousedown', (e) => e.stopPropagation());
+    }
+
+    // Custom Rotation handle
+    const rotateHandle = document.createElement('div');
+    rotateHandle.className = 'rotate-handle';
+    wrapper.appendChild(rotateHandle);
+
+    let isRotating = false;
+    let startAngle = 0;
+
+    rotateHandle.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        isRotating = true;
+        const rect = wrapper.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const onMouseMove = (moveEvent) => {
+            if (!isRotating) return;
+            const dx = moveEvent.clientX - centerX;
+            const dy = moveEvent.clientY - centerY;
+            // atan2 yields radians from -PI to PI, adding 90 degrees offset because handle is at the top
+            let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+            
+            const x = parseFloat(wrapper.getAttribute('data-x')) || 0;
+            const y = parseFloat(wrapper.getAttribute('data-y')) || 0;
+            
+            wrapper.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
+            wrapper.setAttribute('data-angle', angle);
+        };
+
+        const onMouseUp = () => {
+            isRotating = false;
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        };
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    });
+}
+
+function addPhotocardToCanvas(imgSrc, x=100, y=100, w='auto', h='auto', angle=null) {
     const paper = document.getElementById('letter-paper');
     if (!paper) return;
 
     const wrapper = document.createElement('div');
     wrapper.className = 'draggable photocard-item selected';
+    wrapper.setAttribute('data-type', 'image');
     
-    // random slight rotation
-    const angle = Math.floor(Math.random() * 10) - 5;
-    wrapper.style.transform = `translate(100px, 100px) rotate(${angle}deg)`;
-    wrapper.setAttribute('data-x', '100');
-    wrapper.setAttribute('data-y', '100');
+    angle = angle === null ? Math.floor(Math.random() * 10) - 5 : angle;
+    wrapper.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
+    wrapper.style.width = w;
+    wrapper.style.height = h;
+    wrapper.style.zIndex = 10;
+    
+    wrapper.setAttribute('data-x', x);
+    wrapper.setAttribute('data-y', y);
     wrapper.setAttribute('data-angle', angle);
-
-    wrapper.addEventListener('mousedown', () => selectElement(wrapper));
 
     const img = document.createElement('img');
     img.src = imgSrc;
 
     wrapper.appendChild(img);
+    bindElementInteractions(wrapper);
     paper.appendChild(wrapper);
+    selectElement(wrapper);
 }
 
-function addTextToCanvas(text) {
+function addTextToCanvas(text, x=50, y=50, w='auto', h='auto', angle=0, styleString='') {
     const paper = document.getElementById('letter-paper');
     if (!paper) return;
 
     const wrapper = document.createElement('div');
     wrapper.className = 'draggable text-item selected';
-    wrapper.style.transform = `translate(50px, 50px) rotate(0deg)`;
-    wrapper.setAttribute('data-x', '50');
-    wrapper.setAttribute('data-y', '50');
-    wrapper.setAttribute('data-angle', '0');
-
-    wrapper.addEventListener('mousedown', () => selectElement(wrapper));
+    wrapper.setAttribute('data-type', 'text');
+    
+    wrapper.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
+    wrapper.style.width = w;
+    wrapper.style.height = h;
+    wrapper.style.zIndex = 10;
+    
+    wrapper.setAttribute('data-x', x);
+    wrapper.setAttribute('data-y', y);
+    wrapper.setAttribute('data-angle', angle);
 
     const content = document.createElement('div');
     content.className = 'editable-text';
     content.contentEditable = true;
     content.textContent = text;
-    
-    // Don't drag while editing text
-    content.addEventListener('mousedown', (e) => e.stopPropagation());
+    if(styleString) content.style.cssText = styleString;
 
     wrapper.appendChild(content);
+    bindElementInteractions(wrapper);
     paper.appendChild(wrapper);
+    selectElement(wrapper);
+}
+
+// Serialization
+function serializeCanvas() {
+    const paper = document.getElementById('letter-paper');
+    if(!paper) return [];
+    const elements = [];
+    paper.querySelectorAll('.draggable').forEach(el => {
+        const data = {
+            type: el.getAttribute('data-type'),
+            x: el.getAttribute('data-x'),
+            y: el.getAttribute('data-y'),
+            angle: el.getAttribute('data-angle'),
+            width: el.style.width,
+            height: el.style.height,
+            zIndex: el.style.zIndex
+        };
+        
+        if (data.type === 'text') {
+            const textNode = el.querySelector('.editable-text');
+            data.text = textNode.textContent;
+            data.styles = textNode.style.cssText;
+        } else if (data.type === 'image') {
+            const imgNode = el.querySelector('img');
+            data.src = imgNode.src;
+        }
+        elements.push(data);
+    });
+    return elements;
+}
+
+function deserializeCanvas(elements) {
+    if(!elements || elements.length === 0) return;
+    elements.forEach(el => {
+        if(el.type === 'text') {
+            addTextToCanvas(el.text, el.x, el.y, el.width, el.height, el.angle, el.styles);
+        } else if(el.type === 'image') {
+            addPhotocardToCanvas(el.src, el.x, el.y, el.width, el.height, el.angle);
+        }
+    });
+    
+    // Deselect all
+    document.querySelectorAll('.draggable').forEach(item => item.classList.remove('selected'));
+    currentSelectedElement = null;
+    const toolbar = document.getElementById('text-formatting-toolbar');
+    if(toolbar) toolbar.classList.add('hidden');
 }
