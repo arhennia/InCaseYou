@@ -204,6 +204,103 @@ function initEditor(letterData) {
     const bgInput = document.getElementById('bg-input');
     const btnAddBg = document.getElementById('btn-add-bg');
 
+    // --- STICKER CATEGORIES ---
+    const stickerCategories = [
+        {
+            name: 'ribbons',
+            items: [
+                'images/stickers/ribbons/blue ribbon.png',
+                'images/stickers/ribbons/brown ribbon.png',
+                'images/stickers/ribbons/red ribbon.png',
+                'images/stickers/ribbons/pink ribbon.png',
+                'images/stickers/ribbons/checked red ribbon.png',
+                'images/stickers/ribbons/checked green ribbon.png',
+            ]
+        },
+        {
+            name: 'flowers',
+            items: [
+                'images/stickers/flowers/blue flower.png',
+                'images/stickers/flowers/brown flower.png',
+                'images/stickers/flowers/red flower.png',
+                'images/stickers/flowers/pink flower.png',
+                'images/stickers/flowers/white flower.png',
+                'images/stickers/flowers/green clover.png',
+            ]
+        },
+        {
+            name: 'frames',
+            items: [
+                'images/stickers/frames/cam 1 frame.png',
+                'images/stickers/frames/cam 2 frame.png',
+                'images/stickers/frames/film 1 frame.png',
+                'images/stickers/frames/film 3 frame.png',
+                'images/stickers/frames/iphone frame.png',
+                'images/stickers/frames/stamp frame.png',
+            ]
+        },
+        {
+            name: 'stamps',
+            items: [
+                'images/stickers/stamps/blue stamp.png',
+                'images/stickers/stamps/brown stamp.png',
+                'images/stickers/stamps/green stamp.png',
+                'images/stickers/stamps/pink stamp.png',
+                'images/stickers/stamps/red stamp.png',
+                'images/stickers/stamps/white stamp.png',
+            ]
+        },
+        {
+            name: 'papers',
+            items: [
+                'images/stickers/papers/blue paper.png',
+                'images/stickers/papers/fav person paper.png',
+                'images/stickers/papers/good luck paper.png',
+                'images/stickers/papers/good stamp paper.png',
+                'images/stickers/papers/ily paper.png',
+                'images/stickers/papers/pink paper.png',
+            ]
+        },
+        {
+            name: 'memes',
+            items: [
+                'images/stickers/memes/cat meme.png',
+                'images/stickers/memes/hamster meme.png',
+                'images/stickers/memes/kitten meme.png',
+                'images/stickers/memes/man meme.png',
+                'images/stickers/memes/pepe meme.png',
+                'images/stickers/memes/sbsp meme.png',
+            ]
+        }
+    ];
+
+    let currentCategoryIndex = 0;
+    const gallery = document.getElementById('stickers-gallery');
+
+    function renderStickers() {
+        const cat = stickerCategories[currentCategoryIndex];
+        gallery.innerHTML = '';
+        cat.items.forEach(src => {
+            const div = document.createElement('div');
+            div.className = 'sticker-thumb';
+            div.style.backgroundImage = `url('${src}')`;
+            div.title = src.split('/').pop().replace('.png', '');
+            div.addEventListener('click', () => addStickerToCanvas(src));
+            gallery.appendChild(div);
+        });
+    }
+
+    document.getElementById('sticker-prev').addEventListener('click', () => {
+        currentCategoryIndex = (currentCategoryIndex - 1 + stickerCategories.length) % stickerCategories.length;
+        renderStickers();
+    });
+    document.getElementById('sticker-next').addEventListener('click', () => {
+        currentCategoryIndex = (currentCategoryIndex + 1) % stickerCategories.length;
+        renderStickers();
+    });
+
+    renderStickers();
+
     // Add Text Element
     const textBtns = document.querySelectorAll('.element-btn');
     textBtns.forEach(btn => {
@@ -213,6 +310,7 @@ function initEditor(letterData) {
             });
         }
     });
+
 
     // Toggle Photocard
     if (photocardToggle) {
@@ -310,7 +408,11 @@ function initEditor(letterData) {
     // Deselect elements when clicking outside
     document.getElementById('editor-canvas-container').addEventListener('mousedown', (e) => {
         if(e.target.id === 'editor-canvas-container' || e.target.id === 'letter-paper' || e.target.id === 'editor-canvas-wrapper') {
-            document.querySelectorAll('.draggable').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.draggable').forEach(el => {
+                el.classList.remove('selected');
+                const overlay = el.querySelector('.selection-overlay');
+                if (overlay) overlay.remove();
+            });
             currentSelectedElement = null;
             document.getElementById('text-formatting-toolbar').classList.add('hidden');
         }
@@ -335,9 +437,26 @@ function dragMoveListener(event) {
 }
 
 function selectElement(el) {
-    document.querySelectorAll('.draggable').forEach(item => item.classList.remove('selected'));
+    // Remove overlay from any previously selected element
+    document.querySelectorAll('.draggable').forEach(item => {
+        item.classList.remove('selected');
+        const old = item.querySelector('.selection-overlay');
+        if (old) old.remove();
+    });
+
     el.classList.add('selected');
     currentSelectedElement = el;
+
+    // Inject selection overlay with 8 handle circles
+    const overlay = document.createElement('div');
+    overlay.className = 'selection-overlay';
+    const positions = ['tl','tc','tr','ml','mr','bl','bc','br'];
+    positions.forEach(pos => {
+        const h = document.createElement('div');
+        h.className = `sel-handle ${pos}`;
+        overlay.appendChild(h);
+    });
+    el.appendChild(overlay);
 
     if (el.classList.contains('text-item')) {
         showTextToolbar(el);
@@ -534,6 +653,42 @@ function bindElementInteractions(wrapper) {
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
     });
+}
+
+function addStickerToCanvas(imgSrc) {
+    const paper = document.getElementById('letter-paper');
+    if (!paper) return;
+
+    const paperRect = paper.getBoundingClientRect();
+    const stickerSize = 120;
+    // Place roughly in center of paper
+    const x = Math.max(10, (paperRect.width / 2) - (stickerSize / 2));
+    const y = Math.max(10, (paperRect.height / 2) - (stickerSize / 2));
+    const angle = Math.floor(Math.random() * 10) - 5;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'draggable sticker-item selected';
+    wrapper.setAttribute('data-type', 'sticker');
+    wrapper.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
+    wrapper.style.width = stickerSize + 'px';
+    wrapper.style.height = stickerSize + 'px';
+    wrapper.style.zIndex = 10;
+    wrapper.setAttribute('data-x', x);
+    wrapper.setAttribute('data-y', y);
+    wrapper.setAttribute('data-angle', angle);
+
+    const img = document.createElement('img');
+    img.src = imgSrc;
+    img.style.width = '100%';
+    img.style.height = '100%';
+    img.style.objectFit = 'contain';
+    img.style.pointerEvents = 'none';
+    img.draggable = false;
+
+    wrapper.appendChild(img);
+    bindElementInteractions(wrapper);
+    paper.appendChild(wrapper);
+    selectElement(wrapper);
 }
 
 function addPhotocardToCanvas(imgSrc, x=100, y=100, w='auto', h='auto', angle=null) {
