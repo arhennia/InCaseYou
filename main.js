@@ -196,11 +196,6 @@ document.addEventListener('DOMContentLoaded', () => {
 let currentSelectedElement = null;
 
 function initEditor(letterData) {
-    const photocardToggle = document.getElementById('toggle-photocard');
-    const photocardUploadArea = document.getElementById('photocard-upload-area');
-    const photocardInput = document.getElementById('photocard-input');
-    const btnUploadPhotocard = document.getElementById('btn-upload-photocard');
-    
     const bgInput = document.getElementById('bg-input');
     const btnAddBg = document.getElementById('btn-add-bg');
 
@@ -312,26 +307,61 @@ function initEditor(letterData) {
     });
 
 
-    // Toggle Photocard
-    if (photocardToggle) {
-        photocardToggle.addEventListener('change', (e) => {
-            if (e.target.checked) photocardUploadArea.classList.remove('hidden');
-            else photocardUploadArea.classList.add('hidden');
-        });
+    // --- PHOTOCARD ---
+    const photocardToggle = document.getElementById('toggle-photocard');
+    const photocardPanel = document.getElementById('photocard-panel');
+    const photocardFrame = document.getElementById('photocard-frame');
+    const photocardFrameInner = document.getElementById('photocard-frame-inner');
+    const photocardInput = document.getElementById('photocard-input');
+    const photocardPreviewImg = document.getElementById('photocard-preview-img');
+    const photocardPreviewEmpty = document.getElementById('photocard-preview-empty');
+
+    function setPhotocardImage(src) {
+        // Update sidebar preview
+        photocardPreviewImg.src = src;
+        photocardPreviewImg.classList.remove('hidden');
+        photocardPreviewEmpty.style.display = 'none';
+        // Update canvas frame
+        photocardFrameInner.innerHTML = '';
+        const img = document.createElement('img');
+        img.src = src;
+        photocardFrameInner.appendChild(img);
     }
 
-    // Uploads
-    if (btnUploadPhotocard && photocardInput) {
-        btnUploadPhotocard.addEventListener('click', () => photocardInput.click());
-        photocardInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => addPhotocardToCanvas(e.target.result);
-                reader.readAsDataURL(file);
-            }
-        });
+    function clearPhotocardImage() {
+        photocardPreviewImg.src = '';
+        photocardPreviewImg.classList.add('hidden');
+        photocardPreviewEmpty.style.display = '';
+        photocardFrameInner.innerHTML = '';
     }
+
+    photocardToggle.addEventListener('change', () => {
+        if (photocardToggle.checked) {
+            photocardPanel.classList.remove('hidden');
+            photocardFrame.classList.remove('hidden');
+        } else {
+            photocardPanel.classList.add('hidden');
+            photocardFrame.classList.add('hidden');
+            clearPhotocardImage();
+        }
+    });
+
+    document.getElementById('btn-photocard-edit').addEventListener('click', () => {
+        photocardInput.value = '';
+        photocardInput.click();
+    });
+
+    photocardInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => setPhotocardImage(ev.target.result);
+        reader.readAsDataURL(file);
+    });
+
+    document.getElementById('btn-photocard-delete').addEventListener('click', () => {
+        clearPhotocardImage();
+    });
 
     if (btnAddBg && bgInput) {
         btnAddBg.addEventListener('click', () => bgInput.click());
@@ -429,14 +459,30 @@ function initEditor(letterData) {
     document.getElementById('elem-btn-copy').addEventListener('click', () => {
         if (!currentSelectedElement) return;
         const el = currentSelectedElement;
-        const type = el.getAttribute('data-type');
+        const paper = document.getElementById('letter-paper');
+        if (!paper) return;
+
+        // Deep clone the element
+        const clone = el.cloneNode(true);
+
+        // Remove the selection overlay from the clone
+        const cloneOverlay = clone.querySelector('.selection-overlay');
+        if (cloneOverlay) cloneOverlay.remove();
+        clone.classList.remove('selected');
+
+        // Offset position by 20px so it's visually distinct
         const x = (parseFloat(el.getAttribute('data-x')) || 0) + 20;
         const y = (parseFloat(el.getAttribute('data-y')) || 0) + 20;
         const angle = parseFloat(el.getAttribute('data-angle')) || 0;
-        const w = el.style.width;
-        const h = el.style.height;
-        const img = el.querySelector('img');
-        if (img) addPhotocardToCanvas(img.src, x, y, w, h, angle);
+
+        clone.setAttribute('data-x', x);
+        clone.setAttribute('data-y', y);
+        clone.setAttribute('data-angle', angle);
+        clone.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
+
+        bindElementInteractions(clone);
+        paper.appendChild(clone);
+        selectElement(clone);
     });
 
     document.getElementById('elem-btn-delete').addEventListener('click', () => {
