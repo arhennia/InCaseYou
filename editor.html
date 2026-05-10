@@ -74,14 +74,33 @@
                 <section class="sidebar-section">
                     <div class="sidebar-title-row">
                         <h3 class="sidebar-title">PHOTOCARD</h3>
-                        <input type="checkbox" id="toggle-photocard" class="styled-checkbox">
+                        <label class="photocard-toggle-label">
+                            <input type="checkbox" id="toggle-photocard" class="photocard-checkbox">
+                            <span class="photocard-toggle-track"></span>
+                        </label>
                     </div>
-                    <div class="photocard-upload-area hidden" id="photocard-upload-area">
+                    <!-- Shown when checkbox is checked -->
+                    <div class="photocard-panel hidden" id="photocard-panel">
                         <input type="file" id="photocard-input" accept="image/*" hidden>
-                        <button id="btn-upload-photocard" class="dashed-upload-box">
-                            <span class="icon-plus">⊕</span>
-                            ADD IMAGE
-                        </button>
+                        <!-- Preview area: empty state or filled image -->
+                        <div class="photocard-preview-wrap" id="photocard-preview-wrap">
+                            <div class="photocard-preview-empty" id="photocard-preview-empty">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                <span>no image</span>
+                            </div>
+                            <img id="photocard-preview-img" class="photocard-preview-img hidden" src="" alt="Photocard">
+                        </div>
+                        <!-- Edit / Delete actions -->
+                        <div class="photocard-actions">
+                            <button class="photocard-action-btn" id="btn-photocard-edit">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                EDIT
+                            </button>
+                            <button class="photocard-action-btn photocard-action-delete" id="btn-photocard-delete">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4h4"/><path d="M4 7h16"/><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                DELETE
+                            </button>
+                        </div>
                     </div>
                 </section>
 
@@ -110,6 +129,12 @@
                     <!-- The actual letter paper -->
                     <div class="letter-paper" id="letter-paper">
                         <!-- Draggable elements go here -->
+                    </div>
+                    <!-- Fixed Photocard Frame (shown when PHOTOCARD checkbox is on) -->
+                    <div class="photocard-frame hidden" id="photocard-frame">
+                        <div class="photocard-frame-inner" id="photocard-frame-inner">
+                            <!-- Empty placeholder -->
+                        </div>
                     </div>
                 </div>
 
@@ -201,11 +226,16 @@
                         </svg>
                     </button>
                     <button class="elem-action-btn elem-action-delete" id="elem-btn-delete" title="Delete">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="3 6 5 6 21 6"/>
-                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                            <path d="M10 11v6"/><path d="M14 11v6"/>
-                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <!-- Lid handle -->
+                            <path d="M10 4h4"/>
+                            <!-- Lid -->
+                            <path d="M4 7h16"/>
+                            <!-- Bin body -->
+                            <path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/>
+                            <!-- Inner slats -->
+                            <line x1="10" y1="11" x2="10" y2="17"/>
+                            <line x1="14" y1="11" x2="14" y2="17"/>
                         </svg>
                     </button>
                 </div>
