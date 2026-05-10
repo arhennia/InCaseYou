@@ -544,7 +544,7 @@ function initEditor(letterData) {
                 if (overlay) overlay.remove();
             });
             currentSelectedElement = null;
-            document.getElementById('text-formatting-toolbar').classList.add('hidden');
+            hideTextToolbar();
             hideElementActionToolbar();
         }
     });
@@ -665,7 +665,7 @@ function selectElement(el) {
         showTextToolbar(el);
         hideElementActionToolbar();
     } else {
-        document.getElementById('text-formatting-toolbar').classList.add('hidden');
+        hideTextToolbar();
         showElementActionToolbar(el);
     }
 }
@@ -698,48 +698,79 @@ function positionElementActionToolbar(el) {
 function updateToolbarPosition() {
     if (!currentSelectedElement) return;
     if (currentSelectedElement.classList.contains('text-item')) {
-        const toolbar = document.getElementById('text-formatting-toolbar');
-        if (toolbar.classList.contains('hidden')) return;
-        const rect = currentSelectedElement.getBoundingClientRect();
-        toolbar.style.top = (rect.top - 65) + 'px';
-        toolbar.style.left = (rect.left + (rect.width / 2)) + 'px';
+        positionTextToolbar();
     } else {
         positionElementActionToolbar(currentSelectedElement);
+    }
+}
+
+function positionTextToolbar() {
+    const toolbar = document.getElementById('text-formatting-toolbar');
+    const rotateBtn = document.getElementById('text-rotate-btn');
+    if (!currentSelectedElement || toolbar.classList.contains('hidden')) return;
+
+    const rect = currentSelectedElement.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const toolbarH = 36;
+    const gap = 10;  // offset so it never overlaps text
+
+    // Smart position: above by default, flip below if too close to top
+    let top;
+    if (rect.top - toolbarH - gap < 8) {
+        // Not enough room above — place below
+        top = rect.bottom + gap;
+    } else {
+        top = rect.top - toolbarH - gap;
+    }
+
+    toolbar.style.top = top + 'px';
+    toolbar.style.left = cx + 'px';
+
+    // Rotate button below text
+    if (rotateBtn) {
+        rotateBtn.style.left = cx + 'px';
+        rotateBtn.style.top = (rect.bottom + 12) + 'px';
     }
 }
 
 
 function showTextToolbar(el) {
     const toolbar = document.getElementById('text-formatting-toolbar');
+    const rotateBtn = document.getElementById('text-rotate-btn');
     toolbar.classList.remove('hidden');
-    updateToolbarPosition();
-    
-    // Update toolbar active states based on element
-    const textNode = el.querySelector('.editable-text');
-    if(!textNode) return;
+    rotateBtn.classList.remove('hidden');
+    positionTextToolbar();
 
-    // Reset dropdowns
-    document.querySelectorAll('.dropdown-list').forEach(l => l.classList.add('hidden'));
+    // Close any open dropdowns / palettes / layers
+    document.querySelectorAll('.txt-dd-list').forEach(l => l.classList.add('hidden'));
     document.getElementById('color-palette').classList.add('hidden');
+    document.getElementById('layers-menu').classList.add('hidden');
+}
+
+function hideTextToolbar() {
+    document.getElementById('text-formatting-toolbar').classList.add('hidden');
+    document.getElementById('text-rotate-btn').classList.add('hidden');
 }
 
 function initTextToolbar() {
-    // Dropdowns
-    const dropdownTriggers = document.querySelectorAll('.dropdown-trigger');
-    dropdownTriggers.forEach(btn => {
+    // --- Dropdown triggers ---
+    document.querySelectorAll('.txt-dd-trigger').forEach(btn => {
         btn.addEventListener('click', (e) => {
+            e.stopPropagation();
             const list = btn.nextElementSibling;
-            document.querySelectorAll('.dropdown-list, .color-palette').forEach(l => {
-                if(l !== list) l.classList.add('hidden');
+            // Close all other dropdowns / palettes / layers first
+            document.querySelectorAll('.txt-dd-list, .txt-palette').forEach(l => {
+                if (l !== list) l.classList.add('hidden');
             });
+            document.getElementById('layers-menu').classList.add('hidden');
             list.classList.toggle('hidden');
         });
     });
 
-    // Font Family Select
+    // --- Font family select ---
     document.querySelectorAll('#font-family-list li').forEach(li => {
         li.addEventListener('click', () => {
-            if(currentSelectedElement && currentSelectedElement.classList.contains('text-item')) {
+            if (currentSelectedElement && currentSelectedElement.classList.contains('text-item')) {
                 const font = li.getAttribute('data-value');
                 currentSelectedElement.querySelector('.editable-text').style.fontFamily = font;
                 document.getElementById('font-family-display').textContent = li.textContent;
@@ -748,10 +779,10 @@ function initTextToolbar() {
         });
     });
 
-    // Font Size Select
+    // --- Font size select ---
     document.querySelectorAll('#font-size-list li').forEach(li => {
         li.addEventListener('click', () => {
-            if(currentSelectedElement && currentSelectedElement.classList.contains('text-item')) {
+            if (currentSelectedElement && currentSelectedElement.classList.contains('text-item')) {
                 const size = li.getAttribute('data-value');
                 currentSelectedElement.querySelector('.editable-text').style.fontSize = size + 'px';
                 document.getElementById('font-size-display').textContent = size;
@@ -760,16 +791,18 @@ function initTextToolbar() {
         });
     });
 
-    // Color Picker
-    document.getElementById('toolbar-color-btn').addEventListener('click', () => {
+    // --- Color picker ---
+    document.getElementById('toolbar-color-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
         const p = document.getElementById('color-palette');
-        document.querySelectorAll('.dropdown-list').forEach(l => l.classList.add('hidden'));
+        document.querySelectorAll('.txt-dd-list').forEach(l => l.classList.add('hidden'));
+        document.getElementById('layers-menu').classList.add('hidden');
         p.classList.toggle('hidden');
     });
 
-    document.querySelectorAll('.color-swatch').forEach(swatch => {
+    document.querySelectorAll('.txt-swatch').forEach(swatch => {
         swatch.addEventListener('click', () => {
-            if(currentSelectedElement && currentSelectedElement.classList.contains('text-item')) {
+            if (currentSelectedElement && currentSelectedElement.classList.contains('text-item')) {
                 const color = swatch.getAttribute('data-color');
                 currentSelectedElement.querySelector('.editable-text').style.color = color;
                 document.getElementById('toolbar-color-btn').style.backgroundColor = color;
@@ -778,55 +811,144 @@ function initTextToolbar() {
         });
     });
 
-    // Formatting Buttons
+    // --- Format buttons ---
     document.querySelectorAll('.format-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            if(!currentSelectedElement || !currentSelectedElement.classList.contains('text-item')) return;
+            if (!currentSelectedElement || !currentSelectedElement.classList.contains('text-item')) return;
             const format = btn.getAttribute('data-format');
             const textNode = currentSelectedElement.querySelector('.editable-text');
-            
-            if(format === 'bold') {
+
+            if (format === 'bold') {
                 textNode.style.fontWeight = textNode.style.fontWeight === 'bold' ? 'normal' : 'bold';
                 btn.classList.toggle('active');
             }
-            if(format === 'align-center') {
-                const currentAlign = textNode.style.textAlign || 'left';
-                const nextAlign = currentAlign === 'left' ? 'center' : (currentAlign === 'center' ? 'right' : 'left');
-                textNode.style.textAlign = nextAlign;
+            if (format === 'align-center') {
+                // Cycle: left → center → right → left
+                const cur = textNode.style.textAlign || 'left';
+                const next = cur === 'left' ? 'center' : (cur === 'center' ? 'right' : 'left');
+                textNode.style.textAlign = next;
+                // Update icon based on current state
+                const svgMap = {
+                    left:   '<line x1="3" y1="10" x2="18" y2="10"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="3" y1="18" x2="18" y2="18"/>',
+                    center: '<line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/>',
+                    right:  '<line x1="21" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="6" y2="18"/>'
+                };
+                const svg = btn.querySelector('svg');
+                if (svg) svg.innerHTML = svgMap[next] || svgMap.center;
             }
         });
     });
 
-    // Actions
+    // --- Layers dropdown ---
+    const layersToggle = document.getElementById('layers-toggle-btn');
+    const layersMenu = document.getElementById('layers-menu');
+
+    layersToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Close all other dropdowns / palettes
+        document.querySelectorAll('.txt-dd-list, .txt-palette').forEach(l => l.classList.add('hidden'));
+        layersMenu.classList.toggle('hidden');
+    });
+
+    document.querySelectorAll('.txt-layers-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!currentSelectedElement) { layersMenu.classList.add('hidden'); return; }
+
+            const paper = document.getElementById('letter-paper');
+            const allDraggables = Array.from(paper.querySelectorAll('.draggable'));
+            const action = item.getAttribute('data-layer');
+
+            if (action === 'front') {
+                // Find highest z-index among siblings and go above it
+                let maxZ = 0;
+                allDraggables.forEach(el => {
+                    const z = parseInt(el.style.zIndex || 10);
+                    if (z > maxZ) maxZ = z;
+                });
+                currentSelectedElement.style.zIndex = maxZ + 1;
+            }
+            if (action === 'back') {
+                // Find lowest z-index among siblings and go below it
+                let minZ = Infinity;
+                allDraggables.forEach(el => {
+                    const z = parseInt(el.style.zIndex || 10);
+                    if (z < minZ) minZ = z;
+                });
+                currentSelectedElement.style.zIndex = Math.max(1, minZ - 1);
+            }
+
+            layersMenu.classList.add('hidden');
+        });
+    });
+
+    // --- Action buttons (duplicate, delete) ---
     document.querySelectorAll('.action-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            if(!currentSelectedElement) return;
+            if (!currentSelectedElement) return;
             const action = btn.getAttribute('data-action');
-            
-            let z = parseInt(currentSelectedElement.style.zIndex || 10);
-            if(action === 'layer-up') {
-                currentSelectedElement.style.zIndex = z + 1;
-            }
-            if(action === 'duplicate') {
+
+            if (action === 'duplicate') {
                 const clone = currentSelectedElement.cloneNode(true);
+                const overlay = clone.querySelector('.selection-overlay');
+                if (overlay) overlay.remove();
+                clone.classList.remove('selected');
+
                 const x = (parseFloat(clone.getAttribute('data-x')) || 0) + 20;
                 const y = (parseFloat(clone.getAttribute('data-y')) || 0) + 20;
                 const angle = clone.getAttribute('data-angle');
-                
+
                 clone.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
                 clone.setAttribute('data-x', x);
                 clone.setAttribute('data-y', y);
-                
+
                 bindElementInteractions(clone);
                 document.getElementById('letter-paper').appendChild(clone);
                 selectElement(clone);
             }
-            if(action === 'delete') {
+            if (action === 'delete') {
                 currentSelectedElement.remove();
                 currentSelectedElement = null;
-                document.getElementById('text-formatting-toolbar').classList.add('hidden');
+                hideTextToolbar();
             }
         });
+    });
+
+    // --- Text rotate button drag-to-rotate ---
+    const txtRotateBtn = document.getElementById('text-rotate-btn');
+    txtRotateBtn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const el = currentSelectedElement;
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const onMouseMove = (moveEvent) => {
+            const dx = moveEvent.clientX - centerX;
+            const dy = moveEvent.clientY - centerY;
+            let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+            const x = parseFloat(el.getAttribute('data-x')) || 0;
+            const y = parseFloat(el.getAttribute('data-y')) || 0;
+            el.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
+            el.setAttribute('data-angle', angle);
+            positionTextToolbar();
+        };
+        const onMouseUp = () => {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        };
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    });
+
+    // --- Close dropdowns on outside click ---
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.txt-dropdown') && !e.target.closest('.color-picker-wrapper') && !e.target.closest('.txt-layers-wrap')) {
+            document.querySelectorAll('.txt-dd-list, .txt-palette').forEach(l => l.classList.add('hidden'));
+            document.getElementById('layers-menu').classList.add('hidden');
+        }
     });
 }
 
@@ -1012,6 +1134,5 @@ function deserializeCanvas(elements) {
     // Deselect all
     document.querySelectorAll('.draggable').forEach(item => item.classList.remove('selected'));
     currentSelectedElement = null;
-    const toolbar = document.getElementById('text-formatting-toolbar');
-    if(toolbar) toolbar.classList.add('hidden');
+    hideTextToolbar();
 }
