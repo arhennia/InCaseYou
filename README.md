@@ -2,58 +2,134 @@
 
 > A delicate, emotional, and highly interactive digital scrapbook and letter editor.
 
-**InCaseYou** is a pure vanilla frontend web application designed to feel like a luxury stationery workspace. It allows you to create collections of digital letters and photocard scrapbooks for the people you care about, utilizing a completely custom, fluid drag-and-drop canvas interface.
+**InCaseYou** is a pure vanilla frontend web application designed to feel like a luxury stationery workspace. It lets you build beautiful, personalised digital letter collections for the people you care about — complete with a fully interactive drag-and-drop canvas, sticker libraries, background scenery, and handwritten-style typography.
 
 ---
 
 ## ✨ Features
 
-- **Asymmetric Editorial Layouts**: A quiet, refined, and cinematic user interface inspired by premium personal stationery.
-- **Interactive Drag & Drop Canvas**: Powered by `interact.js`, allowing you to freely position, resize, and layer text and photos on a digital paper canvas.
-- **Custom Rotation Engine**: A bespoke rotation handle built with JavaScript (`Math.atan2`), allowing 360-degree fluid rotation of any canvas element.
-- **Floating Text Editor**: A contextual, pill-shaped toolbar that appears only when needed. Includes 10 curated Google Fonts (including Geist), custom color palettes, and rich-text layer controls.
-- **State Persistence Engine**: A custom JSON serialization/deserialization engine that automatically autosaves your canvas state (including precise X/Y coordinates, angles, and styles) to `localStorage` every 5 seconds.
-- **Multi-Page Architecture**: Seamlessly handles state transfer across 4 dedicated views: Landing, Collection Overview, New Letter Initialization, and the Canvas Editor.
+### 🗂 Multi-Page Flow
+- **Landing Page** (`index.html`) — Enter recipient and sender names and a personal note to initialise your collection.
+- **Collection Page** (`collection.html`) — Editorial, asymmetric overview of your letter collection with an envelope card for each letter.
+- **New Letter Page** (`newletter.html`) — Set the letter's subtitle ("in case you...") with a live envelope preview.
+- **Editor Page** (`editor.html`) — The full interactive canvas workspace.
+
+### 🎨 Editor Canvas
+- **Real paper texture** — Uses a custom `paper.png` background image for an authentic handmade feel.
+- **Custom background scenery** — 10 curated background images (clouds, coastal, stormy, starry night, etc.) selectable as circular swatches in 5-per-row grid. Users can also upload their own background.
+- **No scroll** — The canvas is locked to exactly fit the viewport so the paper never overflows the screen.
+
+### 🖱 Drag, Resize & Rotate
+- Powered by `interact.js` via CDN for smooth, inertia-driven drag and resize.
+- **8-point selection box** — When any element is selected, a warm brown border appears with 8 circular resize handles (4 corners + 4 midpoints).
+- **Rotation** — Custom `Math.atan2` rotation engine, triggered by rotating the element.
+- All elements are **constrained to the paper** — nothing can be dragged outside the letter canvas.
+
+### 🔤 Text Elements
+- Add rich text directly onto the canvas.
+- **Floating formatting toolbar** — Appears contextually above any selected text with:
+  - **Font family** selector — 10 curated fonts including `Geist`, `Nunito`, `Cedarville Cursive`, `La Belle Aurore`, `Space Mono`, `Patrick Hand`, `Playfair Display`, and more.
+  - **Font size** dropdown.
+  - **Bold, Italic, Underline** toggles.
+  - **Alignment** — Left, Center, Right.
+  - **Color picker** — Curated warm palette.
+  - **Layer up/down**, **Duplicate**, **Delete** actions.
+
+### 🎀 Sticker Library
+- **6 sticker categories**, each with 6 stickers:
+  - `ribbons` — Satin, gingham, and velvet ribbons.
+  - `flowers` — Blue, brown, red, pink, white flowers + green clover.
+  - `frames` — Camera, film strip, iPhone, and stamp frames.
+  - `stamps` — Coloured postage stamps.
+  - `papers` — Decorative note papers with messages.
+  - `memes` — Fun internet characters.
+- Displayed as a **3-column grid**, 6 per category.
+- **Arrow navigation** (`<` / `>`) to cycle between categories.
+- Click any sticker to instantly place it centered on the canvas, ready to drag, resize, and rotate.
+
+### 🖼 Photocard
+- Upload a personal photo to add as a polaroid-style image element on the canvas.
+
+### 💾 Auto-Save
+- Canvas state (all element positions, styles, content, background) is serialised to JSON and auto-saved to `localStorage` every 5 seconds.
+- State persists across page navigations and browser reloads.
+
+---
 
 ## 🛠 Tech Stack
 
-- **HTML5**: Semantic layout structure.
-- **CSS3 (Vanilla)**: Pure CSS implementation focusing on soft shadows, pill-shaped UI components, and curated web typography (no heavy CSS frameworks used).
-- **JavaScript (Vanilla)**: Core application logic, DOM manipulation, and `localStorage` state management.
-- **Interact.js**: External library utilized for cross-device drag, drop, and resize gesture tracking.
+| Layer | Technology |
+|---|---|
+| Structure | HTML5 (Semantic, MPA) |
+| Styling | Vanilla CSS3 — no frameworks |
+| Logic | Vanilla JavaScript (ES6+) |
+| Interactions | `interact.js` (CDN) |
+| Fonts | Google Fonts + Geist (CDN) |
+| Persistence | `localStorage` |
+
+---
 
 ## 📂 Project Structure
 
 ```text
 InCaseYou/
-├── index.html          # The landing page and collection initializer
-├── collection.html     # The editorial overview of your letter collection
-├── newletter.html      # Form to initialize a new letter ("in case you...")
-├── editor.html         # The interactive workspace and drag-and-drop canvas
-├── style.css           # Global design system and layout styling
-└── main.js             # Global state management and editor logic
+├── index.html              # Landing page
+├── collection.html         # Collection overview
+├── newletter.html          # New letter setup
+├── editor.html             # Interactive canvas editor
+├── style.css               # Global design system
+├── main.js                 # App state + editor logic
+└── images/
+    ├── envelope.png        # Envelope graphic
+    ├── paper.png           # Canvas paper texture
+    ├── bgs/                # 10 background images
+    └── stickers/
+        ├── ribbons/        # 6 ribbon stickers
+        ├── flowers/        # 6 flower stickers
+        ├── frames/         # 6 frame stickers
+        ├── stamps/         # 6 stamp stickers
+        ├── papers/         # 6 decorative paper stickers
+        └── memes/          # 6 meme stickers
 ```
+
+---
 
 ## 🚀 Getting Started
 
-Because **InCaseYou** relies purely on standard web technologies and `localStorage`, there is no complex build step required to run it locally.
+No build step required. Pure HTML + JS + CSS.
 
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/yourusername/incaseyou.git
    ```
-2. **Open the project**:
-   Simply open the `index.html` file in your preferred web browser, or use an extension like **Live Server** in VS Code for hot-reloading during development.
-3. **Start Creating**: 
-   Type a name in the landing page to initialize your `localStorage` state and begin building your letter collection.
+
+2. **Open locally**:
+   Use **Live Server** in VS Code or open `index.html` directly in your browser.
+
+3. **Start creating**:
+   Fill in the landing form and hit **MAKE IT →** to begin.
+
+---
 
 ## 🎨 Design Philosophy
 
-The application strictly adheres to a "quiet, emotional, and airy" design language:
-- **Palette**: Mint green backgrounds (`#E0F5EE`), soft brown typography (`#866144`), and cream-colored envelopes.
-- **Typography**: A mix of `Inter` for structured UI elements and expressive script/serif fonts (like `Gorditas`, `Great Vibes`, and `Cedarville Cursive`) for the actual letter content.
-- **Spacing**: Heavy use of generous whitespace, absolute positioning for asymmetrical elegance, and intentional vertical rhythm.
+**InCaseYou** is designed to feel like opening a beautifully arranged stationery desk, not a productivity app.
+
+- **Palette** — Mint green (`#E0F5EE`), warm muted browns (`#866144`, `#968571`), and soft cream paper whites.
+- **Typography** — `Inter` for structured UI labels. Script and serif display fonts (`Gorditas`, `Great Vibes`) for emotional headings and canvas elements.
+- **Layout** — Asymmetric, editorial compositions with intentional whitespace. Absolute positioning for logo and signature creates a cinematic, non-dashboard feel.
+- **Interactions** — Subtle hover micro-animations, soft brown selection handles, and a clean 3px sidebar scrollbar with no arrow buttons.
+
+---
+
+## ⚠️ Known Limitations
+
+- **Storage limit** — `localStorage` has a ~5MB cap. Base64-encoded uploaded images (photocards, custom backgrounds) may approach this limit with heavy use.
+- **No backend** — All data is local to the browser. Clearing `localStorage` will erase collections.
+- **Desktop only** — Touch/mobile precision for rotate and resize gestures has not been optimised.
+
+---
 
 ## 📝 License
 
-This project is open-source. Please see the `LICENSE` file for more details.
+Open-source. See `LICENSE` for details.
