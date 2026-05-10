@@ -415,7 +415,64 @@ function initEditor(letterData) {
             });
             currentSelectedElement = null;
             document.getElementById('text-formatting-toolbar').classList.add('hidden');
+            hideElementActionToolbar();
         }
+    });
+
+    // --- Element Action Toolbar Buttons ---
+    document.getElementById('elem-btn-layer').addEventListener('click', () => {
+        if (!currentSelectedElement) return;
+        const cur = parseInt(currentSelectedElement.style.zIndex || 10);
+        currentSelectedElement.style.zIndex = cur + 1;
+    });
+
+    document.getElementById('elem-btn-copy').addEventListener('click', () => {
+        if (!currentSelectedElement) return;
+        const el = currentSelectedElement;
+        const type = el.getAttribute('data-type');
+        const x = (parseFloat(el.getAttribute('data-x')) || 0) + 20;
+        const y = (parseFloat(el.getAttribute('data-y')) || 0) + 20;
+        const angle = parseFloat(el.getAttribute('data-angle')) || 0;
+        const w = el.style.width;
+        const h = el.style.height;
+        const img = el.querySelector('img');
+        if (img) addPhotocardToCanvas(img.src, x, y, w, h, angle);
+    });
+
+    document.getElementById('elem-btn-delete').addEventListener('click', () => {
+        if (!currentSelectedElement) return;
+        currentSelectedElement.remove();
+        currentSelectedElement = null;
+        hideElementActionToolbar();
+    });
+
+    // --- Rotate Button drag-to-rotate ---
+    const rotateBtnEl = document.getElementById('element-rotate-btn');
+    rotateBtnEl.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const el = currentSelectedElement;
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const onMouseMove = (moveEvent) => {
+            const dx = moveEvent.clientX - centerX;
+            const dy = moveEvent.clientY - centerY;
+            let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+            const x = parseFloat(el.getAttribute('data-x')) || 0;
+            const y = parseFloat(el.getAttribute('data-y')) || 0;
+            el.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
+            el.setAttribute('data-angle', angle);
+            positionElementActionToolbar(el);
+        };
+        const onMouseUp = () => {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        };
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
     });
 
     initTextToolbar();
@@ -460,21 +517,51 @@ function selectElement(el) {
 
     if (el.classList.contains('text-item')) {
         showTextToolbar(el);
+        hideElementActionToolbar();
     } else {
         document.getElementById('text-formatting-toolbar').classList.add('hidden');
+        showElementActionToolbar(el);
     }
 }
 
-function updateToolbarPosition() {
-    if(!currentSelectedElement || !currentSelectedElement.classList.contains('text-item')) return;
-    
-    const toolbar = document.getElementById('text-formatting-toolbar');
-    if(toolbar.classList.contains('hidden')) return;
-
-    const rect = currentSelectedElement.getBoundingClientRect();
-    toolbar.style.top = (rect.top - 65) + 'px';
-    toolbar.style.left = (rect.left + (rect.width / 2)) + 'px';
+function showElementActionToolbar(el) {
+    const toolbar = document.getElementById('element-action-toolbar');
+    const rotateBtn = document.getElementById('element-rotate-btn');
+    toolbar.classList.remove('hidden');
+    rotateBtn.classList.remove('hidden');
+    positionElementActionToolbar(el);
 }
+
+function hideElementActionToolbar() {
+    document.getElementById('element-action-toolbar').classList.add('hidden');
+    document.getElementById('element-rotate-btn').classList.add('hidden');
+}
+
+function positionElementActionToolbar(el) {
+    const toolbar = document.getElementById('element-action-toolbar');
+    const rotateBtn = document.getElementById('element-rotate-btn');
+    if (!el || toolbar.classList.contains('hidden')) return;
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    toolbar.style.left = cx + 'px';
+    toolbar.style.top = (rect.top - 58) + 'px';
+    rotateBtn.style.left = cx + 'px';
+    rotateBtn.style.top = (rect.bottom + 14) + 'px';
+}
+
+function updateToolbarPosition() {
+    if (!currentSelectedElement) return;
+    if (currentSelectedElement.classList.contains('text-item')) {
+        const toolbar = document.getElementById('text-formatting-toolbar');
+        if (toolbar.classList.contains('hidden')) return;
+        const rect = currentSelectedElement.getBoundingClientRect();
+        toolbar.style.top = (rect.top - 65) + 'px';
+        toolbar.style.left = (rect.left + (rect.width / 2)) + 'px';
+    } else {
+        positionElementActionToolbar(currentSelectedElement);
+    }
+}
+
 
 function showTextToolbar(el) {
     const toolbar = document.getElementById('text-formatting-toolbar');
