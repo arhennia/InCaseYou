@@ -194,10 +194,97 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- EDITOR LOGIC ---
 let currentSelectedElement = null;
+let canvasScale = 1;
+let canvasOffsetX = 0;
+let canvasOffsetY = 0;
+let isPanMode = false;
+
+function applyCanvasTransform() {
+    const wrapper = document.getElementById('editor-canvas-wrapper');
+    if (wrapper) {
+        wrapper.style.transform = `translate(${canvasOffsetX}px, ${canvasOffsetY}px) scale(${canvasScale})`;
+        wrapper.style.transformOrigin = 'center center';
+    }
+}
+
+function initCanvasControls() {
+    const canvas = document.getElementById('editor-canvas-container');
+    const wrapper = document.getElementById('editor-canvas-wrapper');
+
+    // --- Mode buttons ---
+    const btnEdit = document.getElementById('btn-mode-edit');
+    const btnPan  = document.getElementById('btn-mode-pan');
+
+    function setEditMode() {
+        isPanMode = false;
+        canvas.style.cursor = 'default';
+        btnEdit.classList.add('active');
+        btnPan.classList.remove('active');
+    }
+    function setPanMode() {
+        isPanMode = true;
+        canvas.style.cursor = 'grab';
+        btnPan.classList.add('active');
+        btnEdit.classList.remove('active');
+    }
+    btnEdit.addEventListener('click', setEditMode);
+    btnPan.addEventListener('click', setPanMode);
+
+    // --- Zoom ---
+    document.getElementById('btn-zoom-in').addEventListener('click', () => {
+        canvasScale = Math.min(canvasScale + 0.15, 3);
+        applyCanvasTransform();
+    });
+    document.getElementById('btn-zoom-out').addEventListener('click', () => {
+        canvasScale = Math.max(canvasScale - 0.15, 0.4);
+        applyCanvasTransform();
+    });
+
+    // --- Reset view ---
+    document.getElementById('btn-reset-view').addEventListener('click', () => {
+        canvasScale = 1;
+        canvasOffsetX = 0;
+        canvasOffsetY = 0;
+        applyCanvasTransform();
+        setEditMode();
+    });
+
+    // --- Pan drag ---
+    let panStartX = 0, panStartY = 0, panDragging = false;
+    canvas.addEventListener('mousedown', (e) => {
+        if (!isPanMode) return;
+        if (e.target !== canvas && e.target !== wrapper && e.target.id !== 'letter-paper' && e.target.id !== 'editor-canvas-wrapper') return;
+        panDragging = true;
+        panStartX = e.clientX - canvasOffsetX;
+        panStartY = e.clientY - canvasOffsetY;
+        canvas.style.cursor = 'grabbing';
+    });
+    document.addEventListener('mousemove', (e) => {
+        if (!panDragging) return;
+        canvasOffsetX = e.clientX - panStartX;
+        canvasOffsetY = e.clientY - panStartY;
+        applyCanvasTransform();
+    });
+    document.addEventListener('mouseup', () => {
+        if (!panDragging) return;
+        panDragging = false;
+        if (isPanMode) canvas.style.cursor = 'grab';
+    });
+
+    // --- Scroll-wheel zoom ---
+    canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.1 : 0.1;
+        canvasScale = Math.min(Math.max(canvasScale + delta, 0.4), 3);
+        applyCanvasTransform();
+    }, { passive: false });
+}
 
 function initEditor(letterData) {
     const bgInput = document.getElementById('bg-input');
     const btnAddBg = document.getElementById('btn-add-bg');
+
+    initCanvasControls();
 
     // --- STICKER CATEGORIES ---
     const stickerCategories = [
