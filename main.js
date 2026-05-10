@@ -789,17 +789,10 @@ function initTextToolbar() {
                 textNode.style.fontWeight = textNode.style.fontWeight === 'bold' ? 'normal' : 'bold';
                 btn.classList.toggle('active');
             }
-            if(format === 'italic') {
-                textNode.style.fontStyle = textNode.style.fontStyle === 'italic' ? 'normal' : 'italic';
-                btn.classList.toggle('active');
-            }
-            if(format === 'underline') {
-                textNode.style.textDecoration = textNode.style.textDecoration === 'underline' ? 'none' : 'underline';
-                btn.classList.toggle('active');
-            }
-            if(format.startsWith('align-')) {
-                const align = format.split('-')[1];
-                textNode.style.textAlign = align;
+            if(format === 'align-center') {
+                const currentAlign = textNode.style.textAlign || 'left';
+                const nextAlign = currentAlign === 'left' ? 'center' : (currentAlign === 'center' ? 'right' : 'left');
+                textNode.style.textAlign = nextAlign;
             }
         });
     });
@@ -813,9 +806,6 @@ function initTextToolbar() {
             let z = parseInt(currentSelectedElement.style.zIndex || 10);
             if(action === 'layer-up') {
                 currentSelectedElement.style.zIndex = z + 1;
-            }
-            if(action === 'layer-down') {
-                currentSelectedElement.style.zIndex = Math.max(1, z - 1);
             }
             if(action === 'duplicate') {
                 const clone = currentSelectedElement.cloneNode(true);
