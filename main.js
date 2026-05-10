@@ -255,10 +255,14 @@ function initEditor(letterData) {
     // Background Swatches
     document.querySelectorAll('.bg-swatch:not(.add-bg)').forEach(swatch => {
         swatch.addEventListener('click', (e) => {
-            const bg = getComputedStyle(e.target).backgroundColor;
+            const bgPath = e.currentTarget.dataset.bg;
             const c = document.getElementById('editor-canvas-container');
-            c.style.backgroundImage = 'none';
-            c.style.backgroundColor = bg;
+            c.style.backgroundImage = `url('${bgPath}')`;
+            c.style.backgroundSize = 'cover';
+            c.style.backgroundPosition = 'center';
+            // Update active state
+            document.querySelectorAll('.bg-swatch').forEach(s => s.classList.remove('active'));
+            e.currentTarget.classList.add('active');
         });
     });
 

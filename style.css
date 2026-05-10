@@ -526,15 +526,44 @@ button {
 
 /* Sidebar */
 .editor-sidebar {
-    width: 320px;
-    min-width: 320px;
-    background-color: rgba(245, 239, 235, 0.3);
+    width: 290px;
+    min-width: 290px;
+    background-color: var(--bg-color);
     border-right: 1px solid rgba(150, 133, 113, 0.15);
     overflow-y: auto;
-    padding: 2rem 1.5rem;
+    padding: 1.5rem 1.2rem;
     display: flex;
     flex-direction: column;
-    gap: 2.5rem;
+    gap: 1.8rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(150, 133, 113, 0.35) transparent;
+}
+
+.editor-sidebar::-webkit-scrollbar {
+    width: 3px;
+}
+
+.editor-sidebar::-webkit-scrollbar-button {
+    display: none;
+    height: 0;
+    width: 0;
+}
+
+.editor-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.editor-sidebar::-webkit-scrollbar-thumb {
+    background-color: rgba(150, 133, 113, 0.3);
+    border-radius: 999px;
+}
+
+.editor-sidebar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(150, 133, 113, 0.55);
+}
+
+.editor-sidebar::-webkit-scrollbar-corner {
+    background: transparent;
 }
 
 .sidebar-title-row {
@@ -560,33 +589,58 @@ button {
 /* Elements Grid */
 .elements-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.8rem;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.6rem;
+}
+
+/* TEXT + LINK: 2 equal columns across the full width */
+.elements-grid .element-btn:nth-child(1),
+.elements-grid .element-btn:nth-child(2) {
+    grid-column: span 3;
+}
+
+/* IMAGE + AUDIO + VIDEO: 3 equal columns across the full width */
+.elements-grid .element-btn:nth-child(3),
+.elements-grid .element-btn:nth-child(4),
+.elements-grid .element-btn:nth-child(5) {
+    grid-column: span 2;
 }
 
 .element-btn {
     background-color: transparent;
-    border: 1px solid rgba(150, 133, 113, 0.2);
-    border-radius: 12px;
-    padding: 1.5rem 0.5rem;
+    border: 1px solid rgba(150, 133, 113, 0.25);
+    border-radius: 14px;
+    padding: 1rem 0.5rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.8rem;
-    color: var(--primary-brown);
-    font-size: 0.8rem;
+    justify-content: center;
+    gap: 0.5rem;
+    color: var(--muted-brown);
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
     transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.elem-icon {
+    width: 22px;
+    height: 22px;
+    color: var(--muted-brown);
+    opacity: 0.8;
 }
 
 .element-btn .icon {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     opacity: 0.7;
 }
 
 .element-btn:hover {
-    background-color: rgba(255, 255, 255, 0.5);
-    border-color: rgba(150, 133, 113, 0.4);
-    transform: translateY(-2px);
+    background-color: rgba(134, 97, 68, 0.07);
+    border-color: rgba(134, 97, 68, 0.3);
+    transform: translateY(-1px);
 }
 
 /* Stickers Gallery */
@@ -693,30 +747,36 @@ button {
 
 /* Backgrounds */
 .backgrounds-gallery {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.5rem;
 }
 
 .bg-swatch {
-    width: 45px;
-    height: 45px;
+    width: 100%;
+    aspect-ratio: 1;
     border-radius: 50%;
-    border: 1px solid rgba(150, 133, 113, 0.2);
+    border: 2px solid transparent;
     cursor: pointer;
     padding: 0;
-    transition: transform 0.2s;
+    transition: transform 0.2s, border-color 0.2s;
+    background-color: rgba(150, 133, 113, 0.1);
 }
 
 .bg-swatch:hover {
-    transform: scale(1.1);
+    transform: scale(1.08);
+}
+
+.bg-swatch.active {
+    border-color: var(--primary-brown);
+    box-shadow: 0 0 0 2px rgba(134, 97, 68, 0.25);
 }
 
 .bg-swatch.add-bg {
     background-color: transparent;
-    border: 1px dashed rgba(150, 133, 113, 0.5);
+    border: 1.5px dashed rgba(150, 133, 113, 0.5);
     color: var(--muted-brown);
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -726,11 +786,14 @@ button {
 .editor-canvas-container {
     flex-grow: 1;
     position: relative;
-    overflow: auto;
+    overflow: hidden;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    padding: 4rem;
+    align-items: center;
+    padding: 2rem;
+    background-image: url('images/bgs/green blur.png');
+    background-size: cover;
+    background-position: center;
 }
 
 .editor-canvas-wrapper {
@@ -739,14 +802,17 @@ button {
 }
 
 .letter-paper {
-    width: 650px;
-    min-height: 850px;
-    background-color: #fcfbf9;
-    box-shadow: 0 10px 40px rgba(134, 97, 68, 0.06);
+    width: 550px;
+    height: calc(100vh - 130px);
+    max-height: 820px;
+    background-color: transparent;
+    box-shadow: none;
     position: relative;
     border-radius: 2px;
-    background-image: repeating-linear-gradient(transparent, transparent 31px, rgba(150, 133, 113, 0.1) 31px, rgba(150, 133, 113, 0.1) 32px);
-    background-position: 0 40px;
+    background-image: url('images/paper.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: top center;
     overflow: hidden;
 }
 
