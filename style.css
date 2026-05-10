@@ -1009,6 +1009,101 @@ button {
     background: rgba(134, 97, 68, 0.15);
 }
 
+/* =========================================
+   ELEMENT ACTION TOOLBAR (stickers/images)
+   ========================================= */
+
+.element-action-toolbar {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(150, 133, 113, 0.12);
+    border-radius: 14px;
+    padding: 8px 12px;
+    box-shadow: 0 8px 24px rgba(134, 97, 68, 0.12), 0 2px 8px rgba(0,0,0,0.06);
+    z-index: 9999;
+    transform: translateX(-50%);
+    pointer-events: all;
+    transition: opacity 0.15s;
+}
+
+.element-action-toolbar.hidden {
+    display: none;
+}
+
+.elem-action-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted-brown);
+    transition: background 0.2s, color 0.2s;
+}
+
+.elem-action-btn svg {
+    width: 17px;
+    height: 17px;
+}
+
+.elem-action-btn:hover {
+    background: rgba(150, 133, 113, 0.1);
+    color: var(--primary-brown);
+}
+
+.elem-action-delete {
+    color: #b05c5c;
+}
+
+.elem-action-delete:hover {
+    background: rgba(176, 92, 92, 0.1) !important;
+    color: #b05c5c !important;
+}
+
+/* Rotate Button */
+.element-rotate-btn {
+    position: fixed;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(150, 133, 113, 0.12);
+    border-radius: 50%;
+    box-shadow: 0 8px 24px rgba(134, 97, 68, 0.12), 0 2px 8px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted-brown);
+    cursor: grab;
+    z-index: 9999;
+    transform: translateX(-50%);
+    transition: box-shadow 0.2s, color 0.2s;
+    pointer-events: all;
+}
+
+.element-rotate-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.element-rotate-btn:active {
+    cursor: grabbing;
+}
+
+.element-rotate-btn.hidden {
+    display: none;
+}
+
+
+
 /* Color Picker */
 .color-picker-wrapper {
     position: relative;
