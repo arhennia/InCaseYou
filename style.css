@@ -850,19 +850,22 @@ button {
 /* Fixed Photocard Frame on Canvas */
 .photocard-frame {
     position: absolute;
-    right: -100px;
-    bottom: 40px;
-    width: 200px;
-    height: 240px;
+    right: 20px;
+    bottom: 110px;
+    width: 140px;
+    height: 170px;
     background: #fff;
     border-radius: 4px;
-    box-shadow: 0 8px 32px rgba(134, 97, 68, 0.2), 0 2px 10px rgba(0,0,0,0.12);
-    transform: rotate(5deg);
+    box-shadow: 0 8px 32px rgba(134, 97, 68, 0.18), 0 2px 10px rgba(0,0,0,0.1);
+    transform: rotate(8deg);
     overflow: hidden;
     pointer-events: none;
     z-index: 5;
-    padding: 10px 10px 40px 10px;
+    padding: 8px;
 }
+
+
+
 
 
 .photocard-frame.hidden {
@@ -957,6 +960,8 @@ button {
     overflow: hidden;
 }
 
+
+
 /* Floating Controls */
 .floating-controls {
     position: fixed;
@@ -981,9 +986,16 @@ button {
     align-items: center;
     justify-content: center;
     color: var(--muted-brown);
-    font-size: 1.1rem;
     padding: 0;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
 }
+
+.control-btn svg {
+    width: 17px;
+    height: 17px;
+}
+
 
 .control-btn.active,
 .control-btn:hover {
