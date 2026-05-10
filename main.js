@@ -209,9 +209,8 @@ function applyCanvasTransform() {
 
 function initCanvasControls() {
     const canvas = document.getElementById('editor-canvas-container');
-    const wrapper = document.getElementById('editor-canvas-wrapper');
 
-    // --- Mode buttons ---
+    // --- Mode toggle ---
     const btnEdit = document.getElementById('btn-mode-edit');
     const btnPan  = document.getElementById('btn-mode-pan');
 
@@ -230,14 +229,24 @@ function initCanvasControls() {
     btnEdit.addEventListener('click', setEditMode);
     btnPan.addEventListener('click', setPanMode);
 
-    // --- Zoom ---
-    document.getElementById('btn-zoom-in').addEventListener('click', () => {
+    // --- Zoom (min = 1, cannot shrink below initial size) ---
+    const btnZoomIn  = document.getElementById('btn-zoom-in');
+    const btnZoomOut = document.getElementById('btn-zoom-out');
+
+    function updateZoomButtons() {
+        btnZoomOut.disabled = canvasScale <= 1;
+    }
+
+    btnZoomIn.addEventListener('click', () => {
         canvasScale = Math.min(canvasScale + 0.15, 3);
         applyCanvasTransform();
+        updateZoomButtons();
     });
-    document.getElementById('btn-zoom-out').addEventListener('click', () => {
-        canvasScale = Math.max(canvasScale - 0.15, 0.4);
+    btnZoomOut.addEventListener('click', () => {
+        if (canvasScale <= 1) return;
+        canvasScale = Math.max(canvasScale - 0.15, 1);
         applyCanvasTransform();
+        updateZoomButtons();
     });
 
     // --- Reset view ---
@@ -246,6 +255,7 @@ function initCanvasControls() {
         canvasOffsetX = 0;
         canvasOffsetY = 0;
         applyCanvasTransform();
+        updateZoomButtons();
         setEditMode();
     });
 
@@ -253,7 +263,6 @@ function initCanvasControls() {
     let panStartX = 0, panStartY = 0, panDragging = false;
     canvas.addEventListener('mousedown', (e) => {
         if (!isPanMode) return;
-        if (e.target !== canvas && e.target !== wrapper && e.target.id !== 'letter-paper' && e.target.id !== 'editor-canvas-wrapper') return;
         panDragging = true;
         panStartX = e.clientX - canvasOffsetX;
         panStartY = e.clientY - canvasOffsetY;
@@ -271,13 +280,17 @@ function initCanvasControls() {
         if (isPanMode) canvas.style.cursor = 'grab';
     });
 
-    // --- Scroll-wheel zoom ---
+    // --- Scroll-wheel zoom (min 1) ---
     canvas.addEventListener('wheel', (e) => {
         e.preventDefault();
         const delta = e.deltaY > 0 ? -0.1 : 0.1;
-        canvasScale = Math.min(Math.max(canvasScale + delta, 0.4), 3);
+        canvasScale = Math.min(Math.max(canvasScale + delta, 1), 3);
         applyCanvasTransform();
+        updateZoomButtons();
     }, { passive: false });
+
+    // Initial state
+    updateZoomButtons();
 }
 
 function initEditor(letterData) {

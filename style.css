@@ -968,24 +968,71 @@ button {
     bottom: 2rem;
     right: 2rem;
     display: flex;
-    gap: 0.2rem;
-    background: #fff;
-    padding: 0.5rem;
+    align-items: center;
+    gap: 0.15rem;
+    background: rgba(255, 255, 255, 0.93);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 0.4rem 0.55rem;
     border-radius: 30px;
-    box-shadow: 0 4px 20px rgba(134, 97, 68, 0.08);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.05);
+    border: 1px solid rgba(200, 200, 200, 0.4);
     z-index: 100;
+}
+
+/* Edit / Pan mode toggle — subtle 2-button pill */
+.mode-toggle {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 20px;
+    padding: 3px;
+    gap: 1px;
+}
+
+.mode-btn {
+    background: transparent;
+    border: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 17px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+}
+
+.mode-btn svg {
+    width: 15px;
+    height: 15px;
+}
+
+.mode-btn.active {
+    background: #fff;
+    color: #555;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+}
+
+/* Divider */
+.controls-divider {
+    width: 1px;
+    height: 22px;
+    background: rgba(0, 0, 0, 0.1);
+    margin: 0 0.25rem;
 }
 
 .control-btn {
     background: transparent;
     border: none;
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--muted-brown);
+    color: #666;
     padding: 0;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
@@ -996,12 +1043,19 @@ button {
     height: 17px;
 }
 
-
-.control-btn.active,
 .control-btn:hover {
-    background-color: var(--bg-color);
-    color: var(--primary-brown);
+    background-color: rgba(0, 0, 0, 0.06);
+    color: #333;
 }
+
+.control-btn:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+}
+
+
+
+
 
 /* Draggables */
 .draggable {
