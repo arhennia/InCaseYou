@@ -958,6 +958,20 @@ button {
     background-repeat: no-repeat;
     background-position: top center;
     overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+/* Allow typing selection only while a text box is in edit mode */
+.letter-paper .text-item.is-text-editing .editable-text {
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    -webkit-touch-callout: default;
 }
 
 
@@ -1060,7 +1074,7 @@ button {
 /* Draggables */
 .draggable {
     position: absolute;
-    cursor: grab;
+    cursor: move;
     z-index: 10;
     top: 0;
     left: 0;
@@ -1068,9 +1082,24 @@ button {
     box-sizing: border-box;
 }
 
-.draggable:active {
-    cursor: grabbing;
-    z-index: 100;
+.editor-canvas-container.editor-is-dragging {
+    cursor: grabbing !important;
+}
+
+.editor-canvas-container.editor-is-dragging .draggable:not(.text-item.is-text-editing) {
+    cursor: grabbing !important;
+}
+
+.editor-canvas-container.editor-is-dragging .text-item.is-text-editing .editable-text {
+    cursor: text !important;
+}
+
+/* Lock selection during drag / resize / rotate gestures (class toggled from JS) */
+.editor-canvas-container.editor-suppress-native-select .text-item .editable-text {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
 }
 
 .draggable.selected {
@@ -1095,8 +1124,19 @@ button {
     border: 1.5px solid rgba(134, 97, 68, 0.65);
     border-radius: 50%;
     transform: translate(-50%, -50%);
-    pointer-events: none;
+    pointer-events: auto;
+    z-index: 51;
 }
+
+/* Directional resize cursors */
+.sel-handle.tl { cursor: nwse-resize; }
+.sel-handle.br { cursor: nwse-resize; }
+.sel-handle.tr { cursor: nesw-resize; }
+.sel-handle.bl { cursor: nesw-resize; }
+.sel-handle.tc { cursor: ns-resize; }
+.sel-handle.bc { cursor: ns-resize; }
+.sel-handle.ml { cursor: ew-resize; }
+.sel-handle.mr { cursor: ew-resize; }
 
 /* 4 corners */
 .sel-handle.tl {
@@ -1155,20 +1195,87 @@ button {
 }
 
 .text-item {
-    padding: 5px;
-    min-width: 100px;
-    min-height: 40px;
+    padding: 4px 6px;
+    min-width: 60px;
+    min-height: 24px;
+    cursor: move;
+    width: fit-content;
+    max-width: 100%;
+    height: auto;
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.text-item.selected:not(.is-text-editing) {
+    cursor: move;
+}
+
+.text-item .editable-text:not(.is-editing) {
+    cursor: move;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-drag: none;
+}
+
+.text-item.is-text-editing .editable-text {
+    cursor: text;
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+}
+
+.text-item.is-text-editing .selection-overlay {
+    border-color: rgba(134, 97, 68, 0.32);
+}
+
+.text-item.is-text-editing .sel-handle {
+    opacity: 0.72;
+    transform: translate(-50%, -50%) scale(0.92);
 }
 
 .editable-text {
-    width: 100%;
-    height: 100%;
-    font-family: var(--font-heading);
-    font-size: 1.5rem;
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+    width: max-content;
+    max-width: 100%;
+    min-width: 72px;
+    min-height: 1.45em;
+    height: auto;
+    font-family: 'Geist Sans', sans-serif;
+    font-size: 14px;
     color: var(--primary-brown);
     outline: none;
-    min-width: 100px;
-    min-height: 40px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+    cursor: inherit;
+    touch-action: none;
+}
+
+.editable-text.is-editing {
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    touch-action: auto;
+}
+
+/* Placeholder (non-editing, empty) — muted vs real text */
+.editable-text[data-placeholder].is-empty:not(.is-editing)::before {
+    content: attr(data-placeholder);
+    color: rgba(134, 97, 68, 0.42);
+    pointer-events: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    white-space: nowrap;
 }
 
 /* Rotation Handle — hidden */
@@ -1199,6 +1306,7 @@ button {
     transition: opacity 0.15s ease, top 0.12s ease, left 0.12s ease;
     white-space: nowrap;
     pointer-events: all;
+    overflow: visible;
 }
 
 .txt-toolbar.hidden {
@@ -1232,33 +1340,223 @@ button {
 
 .txt-color-btn:hover { border-color: rgba(134, 97, 68, 0.5); }
 
-.txt-palette {
+/* Floating HSV color picker */
+.txt-color-popup {
     position: absolute;
-    top: calc(100% + 8px);
+    top: calc(100% + 10px);
     left: 50%;
     transform: translateX(-50%);
-    background: #fff;
-    border-radius: 10px;
-    padding: 8px;
+    z-index: 10050;
+    min-width: 228px;
+    padding: 12px;
+    background: rgba(252, 249, 244, 0.98);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(150, 133, 113, 0.18);
+    border-radius: 12px;
+    box-shadow: 0 10px 32px rgba(80, 60, 45, 0.14), 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s ease;
+}
+
+.txt-color-popup.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(6px);
+}
+
+.txt-color-popup:not(.hidden) {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+    transform: translateX(-50%) translateY(0);
+}
+
+.txt-color-popup-inner {
     display: flex;
-    gap: 6px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(150, 133, 113, 0.1);
-    z-index: 10000;
+    flex-direction: column;
+    gap: 10px;
 }
 
-.txt-palette.hidden { display: none; }
+.txt-color-sv-wrap {
+    width: 100%;
+}
 
-.txt-swatch {
-    width: 22px;
-    height: 22px;
+.txt-color-sv {
+    display: block;
+    width: 100%;
+    height: 120px;
+    border: none;
+    border-radius: 8px;
+    cursor: crosshair;
+    position: relative;
+    padding: 0;
+    box-shadow: inset 0 0 0 1px rgba(150, 133, 113, 0.12);
+    background: #ccc;
+    transition: box-shadow 0.12s ease;
+}
+
+.txt-color-sv:focus {
+    outline: none;
+    box-shadow: inset 0 0 0 1px rgba(134, 97, 68, 0.35), 0 0 0 2px rgba(134, 97, 68, 0.15);
+}
+
+.txt-color-sv-indicator {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.28);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    top: 0;
+    left: 0;
+}
+
+.txt-color-hue-row {
+    padding: 0 2px;
+}
+
+.txt-color-hue {
+    width: 100%;
+    height: 10px;
     border-radius: 5px;
-    cursor: pointer;
-    border: 1px solid rgba(150, 133, 113, 0.15);
-    transition: transform 0.12s;
+    -webkit-appearance: none;
+    appearance: none;
+    background: linear-gradient(to right,
+        hsl(0, 100%, 50%), hsl(60, 100%, 50%), hsl(120, 100%, 50%),
+        hsl(180, 100%, 50%), hsl(240, 100%, 50%), hsl(300, 100%, 50%), hsl(360, 100%, 50%));
+    box-shadow: inset 0 0 0 1px rgba(150, 133, 113, 0.15);
 }
 
-.txt-swatch:hover { transform: scale(1.15); }
+.txt-color-hue::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid rgba(134, 97, 68, 0.55);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    cursor: grab;
+}
+
+.txt-color-hue::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid rgba(134, 97, 68, 0.55);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    cursor: grab;
+}
+
+.txt-color-popup-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.txt-color-preview {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid rgba(150, 133, 113, 0.25);
+    flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+.txt-color-hex {
+    flex: 1;
+    min-width: 0;
+    font-family: 'Space Mono', ui-monospace, monospace;
+    font-size: 0.78rem;
+    padding: 6px 8px;
+    border: 1px solid rgba(150, 133, 113, 0.22);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.85);
+    color: var(--primary-brown);
+}
+
+.txt-color-hex:focus {
+    outline: none;
+    border-color: rgba(134, 97, 68, 0.45);
+    box-shadow: 0 0 0 2px rgba(134, 97, 68, 0.12);
+}
+
+.txt-color-eyedrop {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(150, 133, 113, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--primary-brown);
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+}
+
+.txt-color-eyedrop:hover:not(:disabled) {
+    background: rgba(150, 133, 113, 0.08);
+    border-color: rgba(134, 97, 68, 0.35);
+}
+
+.txt-color-eyedrop:disabled {
+    cursor: not-allowed;
+}
+
+/* Text alignment compact menu */
+.txt-align-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(150, 133, 113, 0.12);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.04);
+    padding: 4px;
+    z-index: 10001;
+    min-width: 138px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.txt-align-menu.hidden {
+    display: none;
+}
+
+.txt-align-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 7px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    color: var(--primary-brown);
+    text-align: left;
+    transition: background 0.12s;
+}
+
+.txt-align-item:hover {
+    background: rgba(150, 133, 113, 0.08);
+}
+
+.txt-align-item svg {
+    flex-shrink: 0;
+    opacity: 0.75;
+}
 
 /* Dropdown shared */
 .txt-dropdown { position: relative; display: flex; align-items: center; }

@@ -142,12 +142,25 @@
                 <div id="text-formatting-toolbar" class="txt-toolbar hidden">
                     <!-- Color -->
                     <div class="color-picker-wrapper">
-                        <button id="toolbar-color-btn" class="txt-color-btn"></button>
-                        <div id="color-palette" class="txt-palette hidden">
-                            <div class="txt-swatch" style="background:#866144" data-color="#866144"></div>
-                            <div class="txt-swatch" style="background:#968571" data-color="#968571"></div>
-                            <div class="txt-swatch" style="background:rgba(134,97,68,0.7)" data-color="rgba(134,97,68,0.7)"></div>
-                            <div class="txt-swatch" style="background:rgba(150,133,113,0.5)" data-color="rgba(150,133,113,0.5)"></div>
+                        <button type="button" id="toolbar-color-btn" class="txt-color-btn" aria-haspopup="true" aria-expanded="false"></button>
+                        <div id="txt-color-popup" class="txt-color-popup hidden" role="dialog" aria-label="Color picker">
+                            <div class="txt-color-popup-inner">
+                                <div class="txt-color-sv-wrap">
+                                    <button type="button" id="txt-color-sv" class="txt-color-sv" aria-label="Saturation and brightness">
+                                        <span id="txt-color-sv-indicator" class="txt-color-sv-indicator"></span>
+                                    </button>
+                                </div>
+                                <div class="txt-color-hue-row">
+                                    <input type="range" id="txt-color-hue" class="txt-color-hue" min="0" max="360" value="28" aria-label="Hue">
+                                </div>
+                                <div class="txt-color-popup-footer">
+                                    <div id="txt-color-preview" class="txt-color-preview" aria-hidden="true"></div>
+                                    <input type="text" id="txt-color-hex" class="txt-color-hex" maxlength="7" spellcheck="false" autocomplete="off" placeholder="#866144">
+                                    <button type="button" id="txt-color-eyedropper" class="txt-color-eyedrop" title="Pick screen color">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 22 1-1"/><path d="M3 21v-1"/><path d="m15 9-6 6"/><path d="m21 3-2 2"/><path d="m17 7 2-2"/><path d="m19 5-2 2"/><path d="m9 15 6-6"/><path d="m5 19-2 2"/><path d="m7 17-2 2"/></svg>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="txt-divider"></div>
@@ -190,9 +203,25 @@
                     <button class="txt-btn format-btn" data-format="bold" title="Bold"><b>B</b></button>
                     <div class="txt-divider"></div>
                     <!-- Align -->
-                    <button class="txt-btn format-btn" data-format="align-center" title="Alignment" id="align-btn">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg>
-                    </button>
+                    <div class="txt-dropdown" id="align-dd">
+                        <button type="button" class="txt-btn" id="align-trigger-btn" title="Text alignment" aria-haspopup="true" aria-expanded="false">
+                            <svg id="align-icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg>
+                        </button>
+                        <div id="align-menu" class="txt-align-menu hidden" role="menu">
+                            <button type="button" class="txt-align-item" data-align="left" role="menuitem">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="10" x2="18" y2="10"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
+                                <span>Left</span>
+                            </button>
+                            <button type="button" class="txt-align-item" data-align="center" role="menuitem">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg>
+                                <span>Center</span>
+                            </button>
+                            <button type="button" class="txt-align-item" data-align="right" role="menuitem">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="6" y2="18"/></svg>
+                                <span>Right</span>
+                            </button>
+                        </div>
+                    </div>
                     <div class="txt-divider"></div>
                     <!-- Layers -->
                     <div class="txt-layers-wrap" id="layers-wrap">
