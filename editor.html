@@ -202,26 +202,15 @@
                     <!-- Bold -->
                     <button class="txt-btn format-btn" data-format="bold" title="Bold"><b>B</b></button>
                     <div class="txt-divider"></div>
-                    <!-- Align -->
-                    <div class="txt-dropdown" id="align-dd">
-                        <button type="button" class="txt-btn" id="align-trigger-btn" title="Text alignment" aria-haspopup="true" aria-expanded="false">
-                            <svg id="align-icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg>
-                        </button>
-                        <div id="align-menu" class="txt-align-menu hidden" role="menu">
-                            <button type="button" class="txt-align-item" data-align="left" role="menuitem">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="10" x2="18" y2="10"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
-                                <span>Left</span>
-                            </button>
-                            <button type="button" class="txt-align-item" data-align="center" role="menuitem">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg>
-                                <span>Center</span>
-                            </button>
-                            <button type="button" class="txt-align-item" data-align="right" role="menuitem">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="6" y2="18"/></svg>
-                                <span>Right</span>
-                            </button>
-                        </div>
-                    </div>
+                    <!-- Align (cycle) -->
+                    <button type="button" class="txt-btn" id="align-btn" title="Text alignment">
+                        <svg id="align-icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="10" x2="6" y2="10"/>
+                            <line x1="21" y1="6" x2="3" y2="6"/>
+                            <line x1="21" y1="14" x2="3" y2="14"/>
+                            <line x1="18" y1="18" x2="6" y2="18"/>
+                        </svg>
+                    </button>
                     <div class="txt-divider"></div>
                     <!-- Layers -->
                     <div class="txt-layers-wrap" id="layers-wrap">
