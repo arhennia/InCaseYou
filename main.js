@@ -444,6 +444,44 @@ function setAlignToolbarIcon(align) {
     svg.innerHTML = ALIGN_ICON_SVGS[a] || ALIGN_ICON_SVGS.left;
 }
 
+function ensureTextBoxWidthForAlignment(wrapper, align) {
+    if (!wrapper || !wrapper.classList.contains('text-item')) return;
+    const a = normalizeTextAlign(align);
+    const textNode = wrapper.querySelector('.editable-text');
+    if (!textNode) return;
+
+    // If width is not explicitly set, center/right alignment is meaningless because the box collapses.
+    const hasExplicitWidth = !!wrapper.style.width && wrapper.style.width !== 'auto';
+
+    if ((a === 'center' || a === 'right') && !hasExplicitWidth) {
+        // Lock current visual width as the text box width (keeps object position stable).
+        const rect = wrapper.getBoundingClientRect();
+        const paper = document.getElementById('letter-paper');
+        const paperRect = paper ? paper.getBoundingClientRect() : null;
+        let w = rect.width;
+        if (paperRect) {
+            // Convert screen px → canvas px (account for zoom)
+            w = rect.width * getCanvasInvScale();
+        }
+        wrapper.style.width = `${Math.max(72, Math.round(w))}px`;
+    }
+
+    // Text should align within the box width.
+    textNode.style.width = '100%';
+}
+
+function cycleTextAlignment() {
+    if (!currentSelectedElement || !currentSelectedElement.classList.contains('text-item')) return;
+    const textNode = currentSelectedElement.querySelector('.editable-text');
+    if (!textNode) return;
+    const cur = normalizeTextAlign(textNode.style.textAlign || getComputedStyle(textNode).textAlign);
+    const next = cur === 'left' ? 'center' : (cur === 'center' ? 'right' : 'left');
+    ensureTextBoxWidthForAlignment(currentSelectedElement, next);
+    textNode.style.textAlign = next;
+    setAlignToolbarIcon(next);
+    updateToolbarPosition();
+}
+
 function syncTextToolbarFromSelection() {
     if (!currentSelectedElement || !currentSelectedElement.classList.contains('text-item')) return;
     const textNode = currentSelectedElement.querySelector('.editable-text');
@@ -780,7 +818,7 @@ function initEditor(letterData) {
         if (!editingWrapper) return;
         if (editingWrapper.contains(e.target)) return;
         const uiChrome = e.target.closest(
-            '#text-formatting-toolbar, #text-rotate-btn, .txt-toolbar, #txt-color-popup, .txt-color-popup, .txt-dd-list, .txt-layers-menu, #align-menu'
+            '#text-formatting-toolbar, #text-rotate-btn, .txt-toolbar, #txt-color-popup, .txt-color-popup, .txt-dd-list, .txt-layers-menu'
         );
         if (uiChrome) return;
 
@@ -1004,8 +1042,6 @@ function showTextToolbar(el) {
     document.querySelectorAll('.txt-dd-list').forEach(l => l.classList.add('hidden'));
     const cp = document.getElementById('txt-color-popup');
     if (cp) cp.classList.add('hidden');
-    const am = document.getElementById('align-menu');
-    if (am) am.classList.add('hidden');
     document.getElementById('layers-menu')?.classList.add('hidden');
 }
 
@@ -1016,10 +1052,6 @@ function hideTextToolbar() {
 
 function closeAllTextToolbarMenus() {
     document.querySelectorAll('.txt-dd-list').forEach(l => l.classList.add('hidden'));
-    const am = document.getElementById('align-menu');
-    if (am) am.classList.add('hidden');
-    const at = document.getElementById('align-trigger-btn');
-    if (at) at.setAttribute('aria-expanded', 'false');
     const cp = document.getElementById('txt-color-popup');
     if (cp) cp.classList.add('hidden');
     const cb = document.getElementById('toolbar-color-btn');
@@ -1182,8 +1214,6 @@ function initTextToolbar() {
             document.querySelectorAll('.txt-dd-list').forEach(l => {
                 if (l !== list) l.classList.add('hidden');
             });
-            const am = document.getElementById('align-menu');
-            if (am) am.classList.add('hidden');
             const cp = document.getElementById('txt-color-popup');
             if (cp) cp.classList.add('hidden');
             const tcb = document.getElementById('toolbar-color-btn');
@@ -1193,28 +1223,11 @@ function initTextToolbar() {
         });
     });
 
-    const alignTrigger = document.getElementById('align-trigger-btn');
-    const alignMenu = document.getElementById('align-menu');
-    if (alignTrigger && alignMenu) {
-        alignTrigger.addEventListener('click', (e) => {
+    const alignBtn = document.getElementById('align-btn');
+    if (alignBtn) {
+        alignBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const opening = alignMenu.classList.contains('hidden');
-            closeAllTextToolbarMenus();
-            if (opening) {
-                alignMenu.classList.remove('hidden');
-                alignTrigger.setAttribute('aria-expanded', 'true');
-            }
-        });
-        alignMenu.querySelectorAll('.txt-align-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (!currentSelectedElement || !currentSelectedElement.classList.contains('text-item')) return;
-                const al = item.getAttribute('data-align');
-                currentSelectedElement.querySelector('.editable-text').style.textAlign = al;
-                setAlignToolbarIcon(al);
-                alignMenu.classList.add('hidden');
-                alignTrigger.setAttribute('aria-expanded', 'false');
-            });
+            cycleTextAlignment();
         });
     }
 
@@ -1266,8 +1279,6 @@ function initTextToolbar() {
         layersToggle.addEventListener('click', (e) => {
             e.stopPropagation();
             document.querySelectorAll('.txt-dd-list').forEach(l => l.classList.add('hidden'));
-            const am = document.getElementById('align-menu');
-            if (am) am.classList.add('hidden');
             const cp = document.getElementById('txt-color-popup');
             if (cp) cp.classList.add('hidden');
             const tcb = document.getElementById('toolbar-color-btn');
@@ -1405,9 +1416,9 @@ function bindElementInteractions(wrapper) {
         // Double click anywhere on the text object enters edit mode
         wrapper.addEventListener('dblclick', (e) => {
             if (wrapper.classList.contains('is-text-editing')) return;
-            const uiChrome = e.target.closest?.(
-                '#text-formatting-toolbar, #text-rotate-btn, .txt-toolbar, #txt-color-popup, .txt-color-popup, .txt-dd-list, .txt-layers-menu, #align-menu'
-            );
+        const uiChrome = e.target.closest?.(
+            '#text-formatting-toolbar, #text-rotate-btn, .txt-toolbar, #txt-color-popup, .txt-color-popup, .txt-dd-list, .txt-layers-menu'
+        );
             if (uiChrome) return;
             e.preventDefault();
             e.stopPropagation();
