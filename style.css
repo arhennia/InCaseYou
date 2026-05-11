@@ -1207,6 +1207,26 @@ button {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+    position: absolute;
+}
+
+.text-item .text-drag-hitbox {
+    position: absolute;
+    inset: -10px;
+    background: transparent;
+    pointer-events: auto;
+    cursor: move;
+    z-index: 1;
+}
+
+.text-item .editable-text {
+    position: relative;
+    z-index: 2;
+}
+
+/* While editing, let the text layer receive all pointer events */
+.text-item.is-text-editing .text-drag-hitbox {
+    pointer-events: none;
 }
 
 .text-item.selected:not(.is-text-editing) {
