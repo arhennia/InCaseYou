@@ -1263,7 +1263,8 @@ button {
     position: relative;
     display: block;
     box-sizing: border-box;
-    width: max-content;
+    /* Must have a real box width so center/right alignment work */
+    width: 100%;
     max-width: 100%;
     min-width: 72px;
     min-height: 1.45em;
@@ -1529,54 +1530,7 @@ button {
 }
 
 /* Text alignment compact menu */
-.txt-align-menu {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(150, 133, 113, 0.12);
-    border-radius: 10px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.04);
-    padding: 4px;
-    z-index: 10001;
-    min-width: 138px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.txt-align-menu.hidden {
-    display: none;
-}
-
-.txt-align-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    border: none;
-    background: transparent;
-    padding: 7px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-family: var(--font-body);
-    font-size: 0.8rem;
-    color: var(--primary-brown);
-    text-align: left;
-    transition: background 0.12s;
-}
-
-.txt-align-item:hover {
-    background: rgba(150, 133, 113, 0.08);
-}
-
-.txt-align-item svg {
-    flex-shrink: 0;
-    opacity: 0.75;
-}
+/* (Removed) alignment dropdown menu — alignment now cycles on the button */
 
 /* Dropdown shared */
 .txt-dropdown { position: relative; display: flex; align-items: center; }
