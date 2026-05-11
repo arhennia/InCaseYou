@@ -1391,6 +1391,30 @@ function bindElementInteractions(wrapper) {
         syncTextEmptyState(existingText);
     }
 
+    // Text hitbox: invisible padded area for easy dragging tiny text
+    if (wrapper.classList.contains('text-item')) {
+        let hit = wrapper.querySelector('.text-drag-hitbox');
+        if (!hit) {
+            hit = document.createElement('div');
+            hit.className = 'text-drag-hitbox';
+            hit.setAttribute('aria-hidden', 'true');
+            // Insert behind the text node so text stays visually unchanged
+            wrapper.insertBefore(hit, wrapper.firstChild);
+        }
+
+        // Double click anywhere on the text object enters edit mode
+        wrapper.addEventListener('dblclick', (e) => {
+            if (wrapper.classList.contains('is-text-editing')) return;
+            const uiChrome = e.target.closest?.(
+                '#text-formatting-toolbar, #text-rotate-btn, .txt-toolbar, #txt-color-popup, .txt-color-popup, .txt-dd-list, .txt-layers-menu, #align-menu'
+            );
+            if (uiChrome) return;
+            e.preventDefault();
+            e.stopPropagation();
+            enterTextEditMode(wrapper);
+        });
+    }
+
     wrapper.addEventListener('mousedown', () => selectElement(wrapper));
 
     const textNode = wrapper.querySelector('.editable-text');
