@@ -15,19 +15,29 @@
     <div class="editor-layout">
         <!-- Editor Header / Back Button -->
         <header class="editor-header">
-            <button id="btn-back-collection" class="btn-icon-text">&larr; <span id="editor-title-display">open when you miss me</span></button>
+            <div class="header-left">
+                <button class="btn-back" id="btn-back-collection" title="Back to Collection">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                </button>
+                <h1 id="editor-title-display">open when...</h1>
+            </div>
+            
             <div class="header-right">
-                <span class="status-text">SAVED</span>
-                <button class="btn-icon" title="Rename">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                </button>
-                <button class="btn-icon" title="Delete">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                </button>
-                <button class="btn-icon" title="Preview">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                </button>
-                <button class="btn-outline btn-small">UNPUBLISH</button>
+                <span class="status-indicator">SAVED</span>
+                
+                <div class="header-actions">
+                    <button class="header-icon-btn" id="btn-edit-title" title="Edit Title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button class="header-icon-btn" id="btn-delete-letter" title="Delete Letter">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    </button>
+                    <button class="header-icon-btn" id="btn-preview-mode" title="Preview Mode">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                    
+                    <button class="btn-publish" id="btn-publish-toggle">PUBLISH</button>
+                </div>
             </div>
         </header>
 
@@ -143,25 +153,6 @@
                     <!-- Color -->
                     <div class="color-picker-wrapper">
                         <button type="button" id="toolbar-color-btn" class="txt-color-btn" aria-haspopup="true" aria-expanded="false"></button>
-                        <div id="txt-color-popup" class="txt-color-popup hidden" role="dialog" aria-label="Color picker">
-                            <div class="txt-color-popup-inner">
-                                <div class="txt-color-sv-wrap">
-                                    <button type="button" id="txt-color-sv" class="txt-color-sv" aria-label="Saturation and brightness">
-                                        <span id="txt-color-sv-indicator" class="txt-color-sv-indicator"></span>
-                                    </button>
-                                </div>
-                                <div class="txt-color-hue-row">
-                                    <input type="range" id="txt-color-hue" class="txt-color-hue" min="0" max="360" value="28" aria-label="Hue">
-                                </div>
-                                <div class="txt-color-popup-footer">
-                                    <div id="txt-color-preview" class="txt-color-preview" aria-hidden="true"></div>
-                                    <input type="text" id="txt-color-hex" class="txt-color-hex" maxlength="7" spellcheck="false" autocomplete="off" placeholder="#866144">
-                                    <button type="button" id="txt-color-eyedropper" class="txt-color-eyedrop" title="Pick screen color">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 22 1-1"/><path d="M3 21v-1"/><path d="m15 9-6 6"/><path d="m21 3-2 2"/><path d="m17 7 2-2"/><path d="m19 5-2 2"/><path d="m9 15 6-6"/><path d="m5 19-2 2"/><path d="m7 17-2 2"/></svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                     <div class="txt-divider"></div>
                     <!-- Font family -->
@@ -191,11 +182,23 @@
                             <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                         </button>
                         <ul id="font-size-list" class="txt-dd-list txt-dd-list-size hidden">
+                            <li data-value="8">8</li>
+                            <li data-value="9">9</li>
+                            <li data-value="10">10</li>
+                            <li data-value="11">11</li>
+                            <li data-value="12">12</li>
                             <li data-value="14">14</li>
+                            <li data-value="16">16</li>
                             <li data-value="18">18</li>
+                            <li data-value="20">20</li>
                             <li data-value="24">24</li>
-                            <li data-value="32">32</li>
+                            <li data-value="30">30</li>
+                            <li data-value="36">36</li>
                             <li data-value="48">48</li>
+                            <li data-value="60">60</li>
+                            <li data-value="72">72</li>
+                            <li data-value="96">96</li>
+
                         </ul>
                     </div>
                     <div class="txt-divider"></div>
@@ -276,47 +279,445 @@
                     </svg>
                 </div>
 
-                <!-- Floating Controls -->
-                <div class="floating-controls">
-                    <!-- Edit / Pan toggle pill -->
-                    <div class="mode-toggle" id="mode-toggle">
-                        <!-- Edit mode — cursor arrow by Pixel perfect (Flaticon) -->
-                        <button class="mode-btn active" id="btn-mode-edit" title="Edit mode">
-                            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M5.5,3.2L5.5,19.8l4.4-4.4l3.1,6.8l2.4-1.1l-3.1-6.8l6.5,0L5.5,3.2z"/>
-                            </svg>
+                <!-- Floating Controls Pill Dock -->
+                <div class="floating-controls" id="canvas-pill-dock">
+                    <!-- Section 1: Mode Selection -->
+                    <div class="control-section">
+                        <button class="mode-btn active" id="btn-mode-edit" data-tooltip="Edit mode">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5.5,3.2L5.5,19.8l4.4-4.4l3.1,6.8l2.4-1.1l-3.1-6.8l6.5,0L5.5,3.2z"/></svg>
                         </button>
-                        <!-- Pan mode — 4-direction move by Maniprasanth (Flaticon) -->
-                        <button class="mode-btn" id="btn-mode-pan" title="Pan mode">
-                            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M19,11h-6V5h2l-3-3l-3,3h2v6H5V9l-3,3l3,3v-2h6v6H9l3,3l3-3h-2v-6h6v2l3-3l-3-3V11z"/>
-                            </svg>
+                        <button class="mode-btn" id="btn-mode-pan" data-tooltip="Pan mode">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19,11h-6V5h2l-3-3l-3,3h2v6H5V9l-3,3l3,3v-2h6v6H9l3,3l3-3h-2v-6h6v2l3-3l-3-3V11z"/></svg>
                         </button>
                     </div>
 
                     <div class="controls-divider"></div>
 
-                    <!-- Zoom out — by Chanut (Flaticon) -->
-                    <button class="control-btn" id="btn-zoom-out" title="Zoom out">
-                        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M21,19l-5.1-5.1c0.9-1.2,1.4-2.7,1.4-4.4c0-3.9-3.1-7-7-7s-7,3.1-7,7s3.1,7,7,7c1.7,0,3.2-0.6,4.4-1.4l5.1,5.1L21,19z M10.3,15.5c-3.1,0-5.5-2.5-5.5-5.5s2.5-5.5,5.5-5.5s5.5,2.5,5.5,5.5S13.4,15.5,10.3,15.5z M13,10.3H7.3V9.7H13V10.3z"/>
-                        </svg>
+                    <!-- Section 2: Canvas View Controls -->
+                    <div class="control-section">
+                        <button class="control-btn" id="btn-zoom-out" data-tooltip="Zoom out">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21,19l-5.1-5.1c0.9-1.2,1.4-2.7,1.4-4.4c0-3.9-3.1-7-7-7s-7,3.1-7,7s3.1,7,7,7c1.7,0,3.2-0.6,4.4-1.4l5.1,5.1L21,19z M10.3,15.5c-3.1,0-5.5-2.5-5.5-5.5s2.5-5.5,5.5-5.5s5.5,2.5,5.5,5.5S13.4,15.5,10.3,15.5z M13,10.3H7.3V9.7H13V10.3z"/></svg>
+                        </button>
+                        <button class="control-btn" id="btn-zoom-in" data-tooltip="Zoom in">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21,19l-5.1-5.1c0.9-1.2,1.4-2.7,1.4-4.4c0-3.9-3.1-7-7-7s-7,3.1-7,7s3.1,7,7,7c1.7,0,3.2-0.6,4.4-1.4l5.1,5.1L21,19z M10.3,15.5c-3.1,0-5.5-2.5-5.5-5.5s2.5-5.5,5.5-5.5s5.5,2.5,5.5,5.5S13.4,15.5,10.3,15.5z M13,10.3h-2.3v2.3H9.7v-2.3H7.3V9.7h2.3V7.3h1.1v2.3H13V10.3z"/></svg>
+                        </button>
+                        <button class="control-btn" id="btn-reset-view" data-tooltip="Reset view">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21,11V3h-8v2h4.6l-5.1,5.1l1.4,1.4l5.1-5.1V11H21z M3,13v8h8v-2H6.4l5.1-5.1l-1.4-1.4L5.1,17.6V13H3z"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <!-- Link Formatting Toolbar -->
+                <div id="link-formatting-toolbar" class="txt-toolbar hidden">
+                    <!-- Box Color -->
+                    <div class="color-picker-wrapper">
+                        <button id="link-box-color-btn" class="txt-color-btn" title="Box Color" style="background-color: #333;"></button>
+                    </div>
+                    <div class="txt-divider"></div>
+                    <!-- Text Color -->
+                    <div class="color-picker-wrapper">
+                        <button id="link-text-color-btn" class="txt-color-btn" title="Text Color" style="background-color: #fff; border: 1px solid #ddd;"></button>
+                    </div>
+                    <div class="txt-divider"></div>
+                    <!-- Font Size -->
+                    <div class="txt-dd-wrap" id="link-font-size-wrap">
+                        <button class="txt-btn txt-dd-trigger" id="link-font-size-btn">
+                            <span id="link-font-size-display">16</span>
+                            <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1L5 5L9 1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
+                        <ul class="txt-dd-list hidden" id="link-font-size-list">
+                            <li data-value="8">8</li>
+                            <li data-value="9">9</li>
+                            <li data-value="10">10</li>
+                            <li data-value="11">11</li>
+                            <li data-value="12">12</li>
+                            <li data-value="14">14</li>
+                            <li data-value="16">16</li>
+                            <li data-value="18">18</li>
+                            <li data-value="20">20</li>
+                            <li data-value="24">24</li>
+                            <li data-value="28">28</li>
+                            <li data-value="32">32</li>
+                            <li data-value="36">36</li>
+                            <li data-value="42">42</li>
+                            <li data-value="48">48</li>
+                            <li data-value="54">54</li>
+                            <li data-value="64">64</li>
+                        </ul>
+                    </div>
+                    <div class="txt-divider"></div>
+                    <!-- Edit Link -->
+                    <button class="txt-btn" id="btn-edit-link-modal" title="Edit link">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     </button>
-                    <!-- Zoom in — by Chanut (Flaticon) -->
-                    <button class="control-btn" id="btn-zoom-in" title="Zoom in">
-                        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M21,19l-5.1-5.1c0.9-1.2,1.4-2.7,1.4-4.4c0-3.9-3.1-7-7-7s-7,3.1-7,7s3.1,7,7,7c1.7,0,3.2-0.6,4.4-1.4l5.1,5.1L21,19z M10.3,15.5c-3.1,0-5.5-2.5-5.5-5.5s2.5-5.5,5.5-5.5s5.5,2.5,5.5,5.5S13.4,15.5,10.3,15.5z M13,10.3h-2.3v2.3H9.7v-2.3H7.3V9.7h2.3V7.3h1.1v2.3H13V10.3z"/>
-                        </svg>
+                    <div class="txt-divider"></div>
+                    <!-- Layers -->
+                    <div class="txt-layers-wrap" id="link-layers-wrap">
+                        <button class="txt-btn" id="link-layers-toggle-btn" title="Layers">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                        </button>
+                        <div class="txt-layers-menu hidden" id="link-layers-menu">
+                            <button class="txt-layers-item" data-layer="front">bring to front</button>
+                            <button class="txt-layers-item" data-layer="back">send to back</button>
+                        </div>
+                    </div>
+                    <div class="txt-divider"></div>
+                    <!-- Duplicate -->
+                    <button class="txt-btn action-btn" data-action="duplicate" title="Duplicate">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                     </button>
-                    <!-- Reset view — expand/frame by Royyan Wijaya (Flaticon) -->
-                    <button class="control-btn" id="btn-reset-view" title="Reset view">
-                        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M21,11V3h-8v2h4.6l-5.1,5.1l1.4,1.4l5.1-5.1V11H21z M3,13v8h8v-2H6.4l5.1-5.1l-1.4-1.4L5.1,17.6V13H3z"/>
-                        </svg>
+                    <!-- Delete -->
+                    <button class="txt-btn txt-btn-danger action-btn" data-action="delete" title="Delete">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
                     </button>
                 </div>
-            </main>
-        </div>
+
+                <!-- Image Formatting Toolbar -->
+                <div id="image-formatting-toolbar" class="txt-toolbar hidden">
+                    <!-- Crop Action -->
+                    <button class="txt-btn" id="btn-image-crop" title="Crop image">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>
+                    </button>
+                    <button class="txt-btn hidden" id="btn-image-crop-confirm" title="Confirm crop" style="color: #4caf50;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </button>
+                    <div class="txt-divider"></div>
+                    <!-- Layers -->
+                    <div class="txt-layers-wrap" id="image-layers-wrap">
+                        <button class="txt-btn" id="image-layers-toggle-btn" title="Layers">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                        </button>
+                        <div class="txt-layers-menu hidden" id="image-layers-menu">
+                            <button class="txt-layers-item" data-layer="front">bring to front</button>
+                            <button class="txt-layers-item" data-layer="back">send to back</button>
+                        </div>
+                    </div>
+                    <div class="txt-divider"></div>
+                    <!-- Duplicate -->
+                    <button class="txt-btn action-btn" data-action="duplicate" title="Duplicate">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    </button>
+                    <!-- Delete -->
+                    <button class="txt-btn txt-btn-danger action-btn" data-action="delete" title="Delete">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    </button>
+                </div>
+
+                <!-- Audio Formatting Toolbar -->
+                <div id="audio-formatting-toolbar" class="txt-toolbar hidden">
+                    <!-- Layers -->
+                    <div class="txt-layers-wrap" id="audio-layers-wrap">
+                        <button class="txt-btn" id="audio-layers-toggle-btn" title="Layers">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                        </button>
+                        <div class="txt-layers-menu hidden" id="audio-layers-menu">
+                            <button class="txt-layers-item" data-layer="front">bring to front</button>
+                            <button class="txt-layers-item" data-layer="back">send to back</button>
+                        </div>
+                    </div>
+                    <div class="txt-divider"></div>
+                    <!-- Delete -->
+                    <button class="txt-btn txt-btn-danger action-btn" data-action="delete" title="Delete">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    </button>
+                </div>
+                <!-- Video Formatting Toolbar -->
+                <div id="video-formatting-toolbar" class="txt-toolbar hidden">
+                    <!-- Layers -->
+                    <div class="txt-layers-wrap" id="video-layers-wrap">
+                        <button class="txt-btn" id="video-layers-toggle-btn" title="Layers">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                        </button>
+                        <div class="txt-layers-menu hidden" id="video-layers-menu">
+                            <button class="txt-layers-item" data-layer="front">bring to front</button>
+                            <button class="txt-layers-item" data-layer="back">send to back</button>
+                        </div>
+                    </div>
+                    <div class="txt-divider"></div>
+                    <!-- Duplicate -->
+                    <button class="txt-btn action-btn" data-action="duplicate" title="Duplicate">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    </button>
+                    <!-- Delete -->
+                    <button class="txt-btn txt-btn-danger action-btn" data-action="delete" title="Delete">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    </button>
+                </div>
+
+                <!-- Link Modal -->
+                <div id="link-modal-overlay" class="modal-overlay hidden">
+                    <div class="minimal-modal" id="link-modal">
+                        <div class="modal-header">
+                            <h2 id="link-modal-title">add link button</h2>
+                            <button class="modal-close" id="btn-close-link-modal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="modal-input-group">
+                                <label>URL</label>
+                                <input type="text" id="input-link-url" placeholder="e.g. https://example.com">
+                            </div>
+                            <div class="modal-input-group">
+                                <div class="label-row">
+                                    <label>BUTTON LABEL</label>
+                                    <span class="char-counter" id="link-label-counter">0/30</span>
+                                </div>
+                                <input type="text" id="input-link-label" placeholder="e.g. click here" maxlength="30">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-primary btn-modal-action" id="btn-add-link-confirm" disabled>ADD</button>
+                        </div>
+                    </div>
+                </div> <!-- end minimal-modal -->
+                
+                <!-- Image Modal -->
+                <div id="image-modal-overlay" class="modal-overlay hidden">
+                    <div class="minimal-modal image-modal" id="image-modal">
+                        <div class="modal-header">
+                            <h2 id="image-modal-title">add image</h2>
+                            <button class="modal-close" id="btn-close-image-modal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Initial Upload State -->
+                            <div id="image-upload-state" class="modal-state">
+                                <div class="image-drop-zone" id="image-drop-zone">
+                                    <div class="drop-content">
+                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="drop-icon"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                        <p class="drop-text">DROP AN IMAGE FILE OR BROWSE</p>
+                                        <p class="drop-hint">MAX SIZE: 10MB</p>
+                                    </div>
+                                    <input type="file" id="input-image-file" accept="image/png, image/jpeg, image/jpg, image/webp" hidden>
+                                </div>
+                            </div>
+
+                            <!-- Preview State -->
+                            <div id="image-preview-state" class="modal-state hidden">
+                                <div class="image-preview-container">
+                                    <img id="img-upload-preview" src="" alt="Preview">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer hidden" id="image-modal-footer">
+                            <button class="btn-outline" id="btn-replace-image">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                                REPLACE
+                            </button>
+                            <button class="btn-primary" id="btn-add-image-confirm">ADD</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Audio Modal -->
+                <div id="audio-modal-overlay" class="modal-overlay hidden">
+                    <div class="minimal-modal audio-modal" id="audio-modal">
+                        <div class="modal-header">
+                            <h2 id="audio-modal-title">add audio</h2>
+                            <button class="modal-close" id="btn-close-audio-modal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Initial State: Options -->
+                            <div id="audio-options-state" class="modal-state">
+                                <div class="audio-options-grid">
+                                    <div class="audio-option-card" id="btn-audio-record-start">
+                                        <div class="option-icon">
+                                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                                        </div>
+                                        <span>RECORD AUDIO</span>
+                                    </div>
+                                    <div class="audio-option-card" id="btn-audio-upload-start">
+                                        <div class="option-icon">
+                                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                        </div>
+                                        <span>UPLOAD FILE</span>
+                                    </div>
+                                </div>
+                                <p class="modal-hint">MAX SIZE: 40MB</p>
+                                <input type="file" id="input-audio-file" accept="audio/*" hidden>
+                            </div>
+
+                            <!-- Countdown State -->
+                            <div id="audio-countdown-state" class="modal-state hidden">
+                                <div class="countdown-wrap">
+                                    <div id="audio-countdown-number" class="countdown-number">3</div>
+                                    <button class="btn-outline compact" id="btn-audio-countdown-cancel">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+                                        CANCEL
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Recording State -->
+                            <div id="audio-recording-state" class="modal-state hidden">
+                                <div class="recording-wrap">
+                                    <div class="recording-indicator">
+                                        <div class="pulse-dot"></div>
+                                    </div>
+                                    <div id="audio-recording-timer" class="recording-timer">0:00</div>
+                                    <button class="btn-primary btn-stop-recording" id="btn-audio-stop-recording">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+                                        STOP RECORDING
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Preview State -->
+                            <div id="audio-preview-state" class="modal-state hidden">
+                                <div class="audio-preview-container">
+                                    <div class="audio-pill-preview">
+                                        <button class="preview-play-btn" id="btn-audio-preview-play">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                        </button>
+                                        <div class="waveform-visual">
+                                            <div class="wave-bar" style="height: 12px;"></div>
+                                            <div class="wave-bar" style="height: 20px;"></div>
+                                            <div class="wave-bar" style="height: 16px;"></div>
+                                            <div class="wave-bar" style="height: 24px;"></div>
+                                            <div class="wave-bar" style="height: 14px;"></div>
+                                            <div class="wave-bar" style="height: 22px;"></div>
+                                            <div class="wave-bar" style="height: 18px;"></div>
+                                            <div class="wave-bar" style="height: 10px;"></div>
+                                            <div class="wave-bar" style="height: 16px;"></div>
+                                        </div>
+                                        <span class="preview-duration" id="audio-preview-duration">0:00</span>
+                                    </div>
+                                </div>
+                                <div class="preview-actions">
+                                    <button class="btn-outline compact" id="btn-audio-replace">REPLACE</button>
+                                    <button class="btn-outline compact" id="btn-audio-re-record">RE-RECORD</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer hidden" id="audio-modal-footer">
+                            <button class="btn-primary" id="btn-add-audio-confirm">ADD</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Video Modal -->
+                <div id="video-modal-overlay" class="modal-overlay hidden">
+                    <div class="minimal-modal video-modal" id="video-modal">
+                        <div class="modal-header">
+                            <h2 id="video-modal-title">add video</h2>
+                            <button class="modal-close" id="btn-close-video-modal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Initial Upload State -->
+                            <div id="video-upload-state" class="modal-state">
+                                <div class="video-drop-zone" id="video-drop-zone">
+                                    <div class="drop-content">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="drop-icon"><rect x="2" y="7" width="15" height="13" rx="2" ry="2"/><polyline points="17 12 22 8 22 18 17 14"/></svg>
+                                        <p class="drop-text">DROP A VIDEO OR BROWSE</p>
+                                        <p class="drop-hint">MAX SIZE: 50MB</p>
+                                    </div>
+                                    <input type="file" id="input-video-file" accept="video/mp4, video/quicktime, video/webm, video/x-m4v" hidden>
+                                </div>
+                            </div>
+
+                            <!-- Preview State -->
+                            <div id="video-preview-state" class="modal-state hidden">
+                                <div class="video-preview-container">
+                                    <video id="video-upload-preview" controls></video>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer hidden" id="video-modal-footer">
+                            <button class="btn-outline" id="btn-replace-video">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                                REPLACE
+                            </button>
+                            <button class="btn-primary" id="btn-add-video-confirm">ADD</button>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- end link-modal-overlay -->
+
+            <!-- Edit Title Modal -->
+            <div id="title-modal-overlay" class="modal-overlay hidden">
+                <div class="minimal-modal title-modal" id="title-modal">
+                    <div class="modal-header">
+                        <h2>edit letter title</h2>
+                        <button class="modal-close" id="btn-close-title-modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="modal-input-group">
+                            <div class="label-row">
+                                <label>OPEN WHEN...</label>
+                                <span class="char-counter" id="title-char-counter">0/65</span>
+                            </div>
+                            <input type="text" id="input-letter-title" maxlength="65" placeholder="u want me bad">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-primary" id="btn-save-title">SAVE CHANGES</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Confirmation Modal -->
+            <div id="delete-modal-overlay" class="modal-overlay hidden">
+                <div class="minimal-modal delete-modal" id="delete-modal">
+                    <button class="modal-close" id="btn-close-delete-modal">&times;</button>
+                    <div class="modal-body delete-content">
+                        <div class="delete-sticker-wrap">
+                            <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Felix&backgroundColor=transparent" alt="Delete Sticker" class="delete-sticker">
+                        </div>
+                        <h2>delete this letter?</h2>
+                        <p>this will permanently delete the letter.</p>
+                    </div>
+                    <div class="modal-footer delete-actions">
+                        <button class="btn-outline" id="btn-cancel-delete">CANCEL</button>
+                        <button class="btn-primary btn-danger-filled" id="btn-confirm-delete">DELETE</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Mode Overlay -->
+            <div id="preview-mode-overlay" class="preview-overlay">
+                <div class="preview-top-bar">
+                    <span class="preview-label">PREVIEW</span>
+                    <button class="preview-close" id="btn-exit-preview">&times;</button>
+                </div>
+                <div class="preview-content">
+                    <div class="preview-scene" id="preview-scene">
+                        <!-- Cloned Paper and Background will be injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Notification -->
+            <div id="publish-success-notification" class="success-notif hidden">
+                <div class="success-notif-body">
+                    <div class="success-top">
+                        <div class="success-check">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <span>letter published to collection!</span>
+                    </div>
+                    <div class="success-actions">
+                        <button class="btn-primary compact" id="btn-next-letter">NEXT LETTER</button>
+                        <button class="btn-outline compact" id="btn-success-back">BACK TO COLLECTION</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Color Picker Popup -->
+            <div id="txt-color-popup" class="txt-color-popup hidden" role="dialog" aria-label="Color picker">
+                <div class="txt-color-popup-inner">
+                    <div class="txt-color-sv-wrap">
+                        <button type="button" id="txt-color-sv" class="txt-color-sv" aria-label="Saturation and brightness">
+                            <span id="txt-color-sv-indicator" class="txt-color-sv-indicator"></span>
+                        </button>
+                    </div>
+                    <div class="txt-color-hue-row">
+                        <input type="range" id="txt-color-hue" class="txt-color-hue" min="0" max="360" value="28" aria-label="Hue">
+                    </div>
+                    <div class="txt-color-popup-footer">
+                        <div id="txt-color-preview" class="txt-color-preview" aria-hidden="true"></div>
+                        <input type="text" id="txt-color-hex" class="txt-color-hex" maxlength="7" spellcheck="false" autocomplete="off" placeholder="#866144">
+                        <button type="button" id="txt-color-eyedropper" class="txt-color-eyedrop" title="Pick screen color">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 22 1-1"/><path d="M3 21v-1"/><path d="m15 9-6 6"/><path d="m21 3-2 2"/><path d="m17 7 2-2"/><path d="m19 5-2 2"/><path d="m9 15 6-6"/><path d="m5 19-2 2"/><path d="m7 17-2 2"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main> <!-- end editor-canvas-container -->
     </div>
     <script src="main.js"></script>
 </body>
