@@ -178,7 +178,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 5000);
 
         initEditor(currentLetter);
+        initCollectionSystem();
+        initTextToolbar();
+        initLinkSystem();
+        initImageSystem();
+        initAudioSystem();
+        initVideoSystem();
+        initEditorActions();
+        initControls();
+        initDragAndDrop();
+        setupCanvasClick();
         deserializeCanvas(currentLetter.content);
+        initColorPickerSystem();
         if(currentLetter.background) {
             const container = document.getElementById('editor-canvas-container');
             if (currentLetter.background.includes('url')) {
@@ -298,8 +309,29 @@ function resizeMoveListener(event) {
     let y = (parseFloat(target.getAttribute('data-y')) || 0);
     const angle = (parseFloat(target.getAttribute('data-angle')) || 0);
 
-    target.style.width = (event.rect.width * inv) + 'px';
-    target.style.height = (event.rect.height * inv) + 'px';
+    if (target.classList.contains('link-item')) {
+        const inv = getCanvasInvScale();
+        // For links, we scale font-size based on height change
+        const currentSize = parseFloat(target.getAttribute('data-font-size')) || 16;
+        const ratio = event.rect.height / (parseFloat(target.dataset.prevHeight) || event.rect.height);
+        const newSize = Math.max(8, Math.round(currentSize * ratio));
+        
+        target.style.fontSize = newSize + 'px';
+        target.setAttribute('data-font-size', newSize);
+        const display = document.getElementById('link-font-size-display');
+        if (display) display.textContent = newSize;
+    } else if (target.classList.contains('image-item') && !target.classList.contains('is-cropping')) {
+        // Normal image resize: maintain aspect ratio or just set width/height
+        target.style.width = (event.rect.width * inv) + 'px';
+        target.style.height = (event.rect.height * inv) + 'px';
+    } else if (target.classList.contains('is-cropping')) {
+        // Crop mode resize: only resize the frame
+        target.style.width = (event.rect.width * inv) + 'px';
+        target.style.height = (event.rect.height * inv) + 'px';
+    } else {
+        target.style.width = (event.rect.width * inv) + 'px';
+        target.style.height = (event.rect.height * inv) + 'px';
+    }
 
     x += event.deltaRect.left * inv;
     y += event.deltaRect.top * inv;
@@ -307,6 +339,10 @@ function resizeMoveListener(event) {
     target.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
     target.setAttribute('data-x', x);
     target.setAttribute('data-y', y);
+    
+    if (target.classList.contains('link-item')) {
+        target.dataset.prevHeight = event.rect.height;
+    }
 }
 
 function attachInteractToDraggable(wrapper) {
@@ -520,12 +556,14 @@ function initCanvasControls() {
     function setEditMode() {
         isPanMode = false;
         canvas.style.cursor = 'default';
+        canvas.classList.remove('is-pan-mode');
         btnEdit.classList.add('active');
         btnPan.classList.remove('active');
     }
     function setPanMode() {
         isPanMode = true;
         canvas.style.cursor = 'grab';
+        canvas.classList.add('is-pan-mode');
         btnPan.classList.add('active');
         btnEdit.classList.remove('active');
     }
@@ -842,6 +880,7 @@ function initEditor(letterData) {
             currentSelectedElement = null;
             hideTextToolbar();
             hideElementActionToolbar();
+            hideLinkToolbar();
         }
     });
 
@@ -931,6 +970,1013 @@ function initEditor(letterData) {
     initTextToolbar();
 }
 
+/**
+ * --- Link System ---
+ * Handles link creation, modal logic, and toolbar integration.
+ */
+function initLinkSystem() {
+    const addLinkBtn = document.getElementById('btn-add-link');
+    const modalOverlay = document.getElementById('link-modal-overlay');
+    const closeBtn = document.getElementById('btn-close-link-modal');
+    const confirmBtn = document.getElementById('btn-add-link-confirm');
+    const urlInput = document.getElementById('input-link-url');
+    const labelInput = document.getElementById('input-link-label');
+    const charCounter = document.getElementById('link-label-counter');
+    const modalTitle = document.getElementById('link-modal-title');
+
+    let editingLinkElement = null;
+
+    function openModal(el = null) {
+        editingLinkElement = el;
+        if (el) {
+            modalTitle.textContent = 'edit link button';
+            confirmBtn.textContent = 'SAVE';
+            urlInput.value = el.getAttribute('data-url') || '';
+            labelInput.value = el.querySelector('.link-label').textContent || '';
+        } else {
+            modalTitle.textContent = 'add link button';
+            confirmBtn.textContent = 'ADD';
+            urlInput.value = '';
+            labelInput.value = '';
+        }
+        updateCharCount();
+        validate();
+        modalOverlay.classList.remove('hidden');
+    }
+
+    function closeModal() {
+        modalOverlay.classList.add('hidden');
+    }
+
+    function validate() {
+        confirmBtn.disabled = !urlInput.value.trim() || !labelInput.value.trim();
+    }
+
+    function updateCharCount() {
+        charCounter.textContent = `${labelInput.value.length}/30`;
+    }
+
+    if (addLinkBtn) addLinkBtn.addEventListener('click', () => openModal());
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+    }
+
+    if (urlInput) urlInput.addEventListener('input', validate);
+    if (labelInput) {
+        labelInput.addEventListener('input', () => {
+            updateCharCount();
+            validate();
+        });
+    }
+
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', () => {
+            const url = urlInput.value.trim();
+            const label = labelInput.value.trim();
+
+            if (editingLinkElement) {
+                editingLinkElement.setAttribute('data-url', url);
+                editingLinkElement.querySelector('.link-label').textContent = label;
+            } else {
+                addLinkToCanvas(url, label);
+            }
+            closeModal();
+        });
+    }
+
+    // Toolbar Edit Button
+    const toolbarEditBtn = document.getElementById('btn-edit-link-modal');
+    if (toolbarEditBtn) {
+        toolbarEditBtn.addEventListener('click', () => {
+            if (currentSelectedElement && currentSelectedElement.classList.contains('link-item')) {
+                openModal(currentSelectedElement);
+            }
+        });
+    }
+
+    // Toolbar Layers
+    const layersToggle = document.getElementById('link-layers-toggle-btn');
+    const layersMenu = document.getElementById('link-layers-menu');
+    if (layersToggle && layersMenu) {
+        layersToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeAllTextToolbarMenus();
+            layersMenu.classList.toggle('hidden');
+        });
+    }
+    // Toolbar Font Size
+    const fontSizeDisplay = document.getElementById('link-font-size-display');
+    const fontSizeList = document.getElementById('link-font-size-list');
+    
+    document.querySelectorAll('#link-font-size-list li').forEach(li => {
+        li.addEventListener('click', () => {
+            if (currentSelectedElement && currentSelectedElement.classList.contains('link-item')) {
+                const size = li.getAttribute('data-value');
+                currentSelectedElement.style.fontSize = size + 'px';
+                currentSelectedElement.setAttribute('data-font-size', size);
+                if (fontSizeDisplay) fontSizeDisplay.textContent = size;
+                updateToolbarPosition();
+            }
+            fontSizeList.classList.add('hidden');
+        });
+    });
+
+    document.querySelectorAll('#link-layers-menu .txt-layers-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!currentSelectedElement) return;
+            const paper = document.getElementById('letter-paper');
+            const allDraggables = Array.from(paper.querySelectorAll('.draggable'));
+            const action = item.getAttribute('data-layer');
+
+            if (action === 'front') {
+                let maxZ = 0;
+                allDraggables.forEach(el => {
+                    const z = parseInt(el.style.zIndex || 10);
+                    if (z > maxZ) maxZ = z;
+                });
+                currentSelectedElement.style.zIndex = maxZ + 1;
+            } else if (action === 'back') {
+                let minZ = Infinity;
+                allDraggables.forEach(el => {
+                    const z = parseInt(el.style.zIndex || 10);
+                    if (z < minZ) minZ = z;
+                });
+                currentSelectedElement.style.zIndex = Math.max(1, minZ - 1);
+            }
+            layersMenu.classList.add('hidden');
+        });
+    });
+}
+
+function addLinkToCanvas(url, label, x=100, y=100, angle=0, bgColor='#333333', textColor='#ffffff', zIndex=10, fontSize=16) {
+    const paper = document.getElementById('letter-paper');
+    if (!paper) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'draggable link-item selected';
+    wrapper.setAttribute('data-type', 'link');
+    wrapper.setAttribute('data-url', url);
+    wrapper.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
+    wrapper.style.backgroundColor = bgColor;
+    wrapper.style.color = textColor;
+    wrapper.style.zIndex = zIndex;
+    wrapper.style.fontSize = fontSize + 'px';
+    
+    wrapper.setAttribute('data-x', x);
+    wrapper.setAttribute('data-y', y);
+    wrapper.setAttribute('data-angle', angle);
+    wrapper.setAttribute('data-font-size', fontSize);
+
+    wrapper.innerHTML = `
+        <svg class="link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+        </svg>
+        <span class="link-label">${label}</span>
+    `;
+
+    // Click vs Drag behavior
+    let startX, startY;
+    let isMoving = false;
+
+    wrapper.addEventListener('mousedown', (e) => {
+        startX = e.clientX;
+        startY = e.clientY;
+        isMoving = false;
+        selectElement(wrapper);
+    });
+
+    wrapper.addEventListener('mousemove', (e) => {
+        if (startX === undefined) return;
+        const dist = Math.sqrt(Math.pow(e.clientX - startX, 2) + Math.pow(e.clientY - startY, 2));
+        if (dist > 7) {
+            isMoving = true;
+        }
+    });
+
+    wrapper.addEventListener('mouseup', (e) => {
+        const dist = Math.sqrt(Math.pow(e.clientX - startX, 2) + Math.pow(e.clientY - startY, 2));
+        if (dist < 7 && !isMoving) {
+            // It's a clean click
+            const url = wrapper.getAttribute('data-url');
+            if (url) {
+                // If the link is already selected, open it. If not, just select it (handled by mousedown)
+                if (wrapper.classList.contains('selected')) {
+                    window.open(url.startsWith('http') ? url : 'https://' + url, '_blank');
+                }
+            }
+        }
+        startX = undefined;
+        startY = undefined;
+    });
+
+    paper.appendChild(wrapper);
+    bindElementInteractions(wrapper);
+    selectElement(wrapper);
+}
+
+function initImageSystem() {
+    const addImageBtn = document.getElementById('btn-add-image');
+    const modalOverlay = document.getElementById('image-modal-overlay');
+    const closeBtn = document.getElementById('btn-close-image-modal');
+    const dropZone = document.getElementById('image-drop-zone');
+    const fileInput = document.getElementById('input-image-file');
+    const previewState = document.getElementById('image-preview-state');
+    const uploadState = document.getElementById('image-upload-state');
+    const previewImg = document.getElementById('img-upload-preview');
+    const modalFooter = document.getElementById('image-modal-footer');
+    const replaceBtn = document.getElementById('btn-replace-image');
+    const confirmBtn = document.getElementById('btn-add-image-confirm');
+
+    let currentImageDataUrl = null;
+
+    function openModal() {
+        modalOverlay.classList.remove('hidden');
+        resetModal();
+    }
+
+    function closeModal() {
+        modalOverlay.classList.add('hidden');
+    }
+
+    function resetModal() {
+        uploadState.classList.remove('hidden');
+        previewState.classList.add('hidden');
+        modalFooter.classList.add('hidden');
+        fileInput.value = '';
+        currentImageDataUrl = null;
+    }
+
+    function showPreview(file) {
+        if (!file || !file.type.startsWith('image/')) return;
+        if (file.size > 10 * 1024 * 1024) {
+            alert('File too large (max 10MB)');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            currentImageDataUrl = e.target.result;
+            previewImg.src = currentImageDataUrl;
+            uploadState.classList.add('hidden');
+            previewState.classList.remove('hidden');
+            modalFooter.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    if (addImageBtn) addImageBtn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+    }
+
+    if (dropZone) {
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--primary-brown)';
+            dropZone.style.background = 'rgba(255, 255, 255, 0.8)';
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.borderColor = '';
+            dropZone.style.background = '';
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '';
+            dropZone.style.background = '';
+            const file = e.dataTransfer.files[0];
+            showPreview(file);
+        });
+    }
+
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            showPreview(e.target.files[0]);
+        });
+    }
+
+    if (replaceBtn) replaceBtn.addEventListener('click', () => resetModal());
+
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', () => {
+            if (currentImageDataUrl) {
+                addImageToCanvas(currentImageDataUrl);
+                closeModal();
+            }
+        });
+    }
+
+    // Image Toolbar: Crop Toggle
+    const cropBtn = document.getElementById('btn-image-crop');
+    const cropConfirmBtn = document.getElementById('btn-image-crop-confirm');
+    
+    if (cropBtn) {
+        cropBtn.addEventListener('click', () => {
+            if (currentSelectedElement && currentSelectedElement.classList.contains('image-item')) {
+                currentSelectedElement.classList.add('is-cropping');
+                cropBtn.classList.add('hidden');
+                cropConfirmBtn.classList.remove('hidden');
+            }
+        });
+    }
+
+    if (cropConfirmBtn) {
+        cropConfirmBtn.addEventListener('click', () => {
+            if (currentSelectedElement && currentSelectedElement.classList.contains('image-item')) {
+                currentSelectedElement.classList.remove('is-cropping');
+                cropConfirmBtn.classList.add('hidden');
+                cropBtn.classList.remove('hidden');
+            }
+        });
+    }
+
+    // Toolbar Layers
+    const layersToggle = document.getElementById('image-layers-toggle-btn');
+    const layersMenu = document.getElementById('image-layers-menu');
+    if (layersToggle && layersMenu) {
+        layersToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeAllTextToolbarMenus();
+            layersMenu.classList.toggle('hidden');
+        });
+    }
+
+    document.querySelectorAll('#image-layers-menu .txt-layers-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!currentSelectedElement) return;
+            const paper = document.getElementById('letter-paper');
+            const allDraggables = Array.from(paper.querySelectorAll('.draggable'));
+            const action = item.getAttribute('data-layer');
+
+            if (action === 'front') {
+                let maxZ = 0;
+                allDraggables.forEach(el => {
+                    const z = parseInt(el.style.zIndex || 10);
+                    if (z > maxZ) maxZ = z;
+                });
+                currentSelectedElement.style.zIndex = maxZ + 1;
+            } else if (action === 'back') {
+                let minZ = Infinity;
+                allDraggables.forEach(el => {
+                    const z = parseInt(el.style.zIndex || 10);
+                    if (z < minZ) minZ = z;
+                });
+                currentSelectedElement.style.zIndex = Math.max(1, minZ - 1);
+            }
+            layersMenu.classList.add('hidden');
+        });
+    });
+}
+
+function initAudioSystem() {
+    const addAudioBtn = document.getElementById('btn-add-audio');
+    const modalOverlay = document.getElementById('audio-modal-overlay');
+    const closeBtn = document.getElementById('btn-close-audio-modal');
+    const fileInput = document.getElementById('input-audio-file');
+    
+    // States
+    const optionsState = document.getElementById('audio-options-state');
+    const countdownState = document.getElementById('audio-countdown-state');
+    const recordingState = document.getElementById('audio-recording-state');
+    const previewState = document.getElementById('audio-preview-state');
+    const modalFooter = document.getElementById('audio-modal-footer');
+    
+    // Controls
+    const recordStartBtn = document.getElementById('btn-audio-record-start');
+    const uploadStartBtn = document.getElementById('btn-audio-upload-start');
+    const countdownCancelBtn = document.getElementById('btn-audio-countdown-cancel');
+    const stopRecordingBtn = document.getElementById('btn-audio-stop-recording');
+    const previewPlayBtn = document.getElementById('btn-audio-preview-play');
+    const replaceBtn = document.getElementById('btn-audio-replace');
+    const reRecordBtn = document.getElementById('btn-audio-re-record');
+    const confirmBtn = document.getElementById('btn-add-audio-confirm');
+    
+    // Displays
+    const countdownNum = document.getElementById('audio-countdown-number');
+    const recordingTimer = document.getElementById('audio-recording-timer');
+    const previewDuration = document.getElementById('audio-preview-duration');
+
+    let mediaRecorder;
+    let audioChunks = [];
+    let audioBlob;
+    let audioUrl;
+    let recordingInterval;
+    let recordingStartTime;
+    let previewAudio = new Audio();
+    let countdownInterval;
+
+    function openModal() {
+        modalOverlay.classList.remove('hidden');
+        showState('options');
+    }
+
+    function closeModal() {
+        modalOverlay.classList.add('hidden');
+        stopRecording();
+        stopPreview();
+    }
+
+    function showState(state) {
+        optionsState.classList.add('hidden');
+        countdownState.classList.add('hidden');
+        recordingState.classList.add('hidden');
+        previewState.classList.add('hidden');
+        modalFooter.classList.add('hidden');
+
+        if (state === 'options') optionsState.classList.remove('hidden');
+        if (state === 'countdown') countdownState.classList.remove('hidden');
+        if (state === 'recording') recordingState.classList.remove('hidden');
+        if (state === 'preview') {
+            previewState.classList.remove('hidden');
+            modalFooter.classList.remove('hidden');
+        }
+    }
+
+    function startCountdown() {
+        showState('countdown');
+        let count = 3;
+        countdownNum.textContent = count;
+        
+        countdownInterval = setInterval(() => {
+            count--;
+            if (count > 0) {
+                countdownNum.textContent = count;
+            } else {
+                clearInterval(countdownInterval);
+                startRecording();
+            }
+        }, 1000);
+    }
+
+    async function startRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = (e) => {
+                audioChunks.push(e.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
+                audioUrl = URL.createObjectURL(audioBlob);
+                previewAudio.src = audioUrl;
+                
+                previewAudio.onloadedmetadata = () => {
+                    previewDuration.textContent = formatTime(previewAudio.duration);
+                    showState('preview');
+                };
+            };
+
+            mediaRecorder.start();
+            showState('recording');
+            recordingStartTime = Date.now();
+            recordingInterval = setInterval(updateRecordingTimer, 1000);
+        } catch (err) {
+            console.error("Error accessing microphone:", err);
+            alert("Microphone access denied or not available.");
+            showState('options');
+        }
+    }
+
+    function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        }
+        clearInterval(recordingInterval);
+        clearInterval(countdownInterval);
+    }
+
+    function updateRecordingTimer() {
+        const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+        recordingTimer.textContent = formatTime(elapsed);
+    }
+
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function stopPreview() {
+        previewAudio.pause();
+        previewAudio.currentTime = 0;
+    }
+
+    if (addAudioBtn) addAudioBtn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+    }
+
+    if (recordStartBtn) recordStartBtn.addEventListener('click', startCountdown);
+    if (uploadStartBtn) uploadStartBtn.addEventListener('click', () => fileInput.click());
+    
+    if (countdownCancelBtn) {
+        countdownCancelBtn.addEventListener('click', () => {
+            clearInterval(countdownInterval);
+            showState('options');
+        });
+    }
+
+    if (stopRecordingBtn) stopRecordingBtn.addEventListener('click', stopRecording);
+
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 40 * 1024 * 1024) {
+                    alert("File too large (max 40MB)");
+                    return;
+                }
+                audioUrl = URL.createObjectURL(file);
+                previewAudio.src = audioUrl;
+                previewAudio.onloadedmetadata = () => {
+                    previewDuration.textContent = formatTime(previewAudio.duration);
+                    showState('preview');
+                };
+            }
+        });
+    }
+
+    if (previewPlayBtn) {
+        previewPlayBtn.addEventListener('click', () => {
+            if (previewAudio.paused) {
+                previewAudio.play();
+                previewPlayBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+            } else {
+                previewAudio.pause();
+                previewPlayBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+            }
+        });
+        previewAudio.onended = () => {
+            previewPlayBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+        };
+    }
+
+    if (replaceBtn) replaceBtn.addEventListener('click', () => fileInput.click());
+    if (reRecordBtn) reRecordBtn.addEventListener('click', startCountdown);
+
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', () => {
+            if (audioUrl) {
+                addAudioToCanvas(audioUrl, previewDuration.textContent);
+                closeModal();
+            }
+        });
+    }
+
+    // Audio Toolbar Layers
+    const layersToggle = document.getElementById('audio-layers-toggle-btn');
+    const layersMenu = document.getElementById('audio-layers-menu');
+    if (layersToggle && layersMenu) {
+        layersToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeAllTextToolbarMenus();
+            layersMenu.classList.toggle('hidden');
+        });
+    }
+
+    document.querySelectorAll('#audio-layers-menu .txt-layers-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!currentSelectedElement) return;
+            const paper = document.getElementById('letter-paper');
+            const allDraggables = Array.from(paper.querySelectorAll('.draggable'));
+            const action = item.getAttribute('data-layer');
+
+            if (action === 'front') {
+                let maxZ = 0;
+                allDraggables.forEach(el => {
+                    const z = parseInt(el.style.zIndex || 10);
+                    if (z > maxZ) maxZ = z;
+                });
+                currentSelectedElement.style.zIndex = maxZ + 1;
+            } else if (action === 'back') {
+                let minZ = Infinity;
+                allDraggables.forEach(el => {
+                    const z = parseInt(el.style.zIndex || 10);
+                    if (z < minZ) minZ = z;
+                });
+                currentSelectedElement.style.zIndex = Math.max(1, minZ - 1);
+            }
+            layersMenu.classList.add('hidden');
+        });
+    });
+}
+
+function addAudioToCanvas(src, durationStr, x=100, y=100, width=280, height=44, angle=0, zIndex=10) {
+    const paper = document.getElementById('letter-paper');
+    if (!paper) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'audio-item draggable draggable-item audio-element';
+    
+    wrapper.style.left = '0';
+    wrapper.style.top = '0';
+    wrapper.style.width = width + 'px';
+    wrapper.style.height = height + 'px';
+    wrapper.style.zIndex = zIndex;
+    wrapper.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
+    
+    wrapper.setAttribute('data-x', x);
+    wrapper.setAttribute('data-y', y);
+    wrapper.setAttribute('data-angle', angle);
+    wrapper.setAttribute('data-src', src);
+    wrapper.setAttribute('data-duration', durationStr);
+
+    wrapper.innerHTML = `
+        <div class="audio-item-inner">
+            <div class="audio-play-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+            <div class="waveform-visual">
+                <div class="wave-bar" style="height: 12px;"></div>
+                <div class="wave-bar" style="height: 20px;"></div>
+                <div class="wave-bar" style="height: 16px;"></div>
+                <div class="wave-bar" style="height: 24px;"></div>
+                <div class="wave-bar" style="height: 14px;"></div>
+                <div class="wave-bar" style="height: 22px;"></div>
+                <div class="wave-bar" style="height: 18px;"></div>
+                <div class="wave-bar" style="height: 10px;"></div>
+                <div class="wave-bar" style="height: 16px;"></div>
+                <div class="wave-bar" style="height: 20px;"></div>
+                <div class="wave-bar" style="height: 12px;"></div>
+            </div>
+            <span class="audio-duration">${durationStr}</span>
+        </div>
+    `;
+
+    paper.appendChild(wrapper);
+    bindElementInteractions(wrapper);
+    selectElement(wrapper);
+}
+
+function addImageToCanvas(src, x=150, y=150, width=200, height=200, angle=0, zIndex=10, cropX=0, cropY=0) {
+    const paper = document.getElementById('letter-paper');
+    if (!paper) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'image-item draggable draggable-item image-element';
+    
+    wrapper.style.left = '0';
+    wrapper.style.top = '0';
+    wrapper.style.width = width + 'px';
+    wrapper.style.height = height + 'px';
+    wrapper.style.zIndex = zIndex;
+    wrapper.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
+    
+    wrapper.setAttribute('data-x', x);
+    wrapper.setAttribute('data-y', y);
+    wrapper.setAttribute('data-angle', angle);
+    wrapper.setAttribute('data-src', src);
+
+    wrapper.innerHTML = `
+        <div class="crop-frame">
+            <img src="${src}" alt="Canvas Image" style="transform: translate(${cropX}px, ${cropY}px);" data-crop-x="${cropX}" data-crop-y="${cropY}">
+        </div>
+    `;
+
+    // Internal panning for crop
+    const img = wrapper.querySelector('img');
+    let isPanning = false;
+    let panStartX, panStartY;
+    let baseCropX = cropX, baseCropY = cropY;
+
+    img.addEventListener('mousedown', (e) => {
+        if (!wrapper.classList.contains('is-cropping')) return;
+        e.stopPropagation();
+        isPanning = true;
+        panStartX = e.clientX;
+        panStartY = e.clientY;
+        baseCropX = parseFloat(img.getAttribute('data-crop-x')) || 0;
+        baseCropY = parseFloat(img.getAttribute('data-crop-y')) || 0;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (!isPanning) return;
+        const dx = e.clientX - panStartX;
+        const dy = e.clientY - panStartY;
+        const newX = baseCropX + dx;
+        const newY = baseCropY + dy;
+        img.style.transform = `translate(${newX}px, ${newY}px)`;
+        img.setAttribute('data-crop-x', newX);
+        img.setAttribute('data-crop-y', newY);
+    });
+
+    window.addEventListener('mouseup', () => {
+        isPanning = false;
+    });
+
+    paper.appendChild(wrapper);
+    bindElementInteractions(wrapper);
+    paper.appendChild(wrapper);
+    bindElementInteractions(wrapper);
+    selectElement(wrapper);
+}
+
+function initEditorActions() {
+    // Title Editing
+    const btnEditTitle = document.getElementById('btn-edit-title');
+    const titleModal = document.getElementById('title-modal-overlay');
+    const inputTitle = document.getElementById('input-letter-title');
+    const displayTitle = document.getElementById('editor-title-display');
+    const btnSaveTitle = document.getElementById('btn-save-title');
+    const charCounter = document.getElementById('title-char-counter');
+
+    btnEditTitle?.addEventListener('click', () => {
+        inputTitle.value = displayTitle.textContent === 'open when...' ? '' : displayTitle.textContent;
+        updateCharCounter();
+        titleModal.classList.remove('hidden');
+    });
+
+    inputTitle?.addEventListener('input', updateCharCounter);
+
+    function updateCharCounter() {
+        if (charCounter) charCounter.textContent = `${inputTitle.value.length}/65`;
+    }
+
+    btnSaveTitle?.addEventListener('click', () => {
+        const val = inputTitle.value.trim().toLowerCase();
+        displayTitle.textContent = val || 'open when...';
+        titleModal.classList.add('hidden');
+    });
+
+    document.getElementById('btn-close-title-modal')?.addEventListener('click', () => titleModal.classList.add('hidden'));
+
+    // Deletion
+    const btnDelete = document.getElementById('btn-delete-letter');
+    const deleteModal = document.getElementById('delete-modal-overlay');
+    
+    btnDelete?.addEventListener('click', () => deleteModal.classList.remove('hidden'));
+    document.getElementById('btn-close-delete-modal')?.addEventListener('click', () => deleteModal.classList.add('hidden'));
+    document.getElementById('btn-cancel-delete')?.addEventListener('click', () => deleteModal.classList.add('hidden'));
+    
+    document.getElementById('btn-confirm-delete')?.addEventListener('click', () => {
+        // In a real app, this would be a fetch DELETE request
+        alert("Letter deleted. Redirecting to collection...");
+        window.location.reload(); // Simple mock
+    });
+
+    // Preview Mode
+    const btnPreview = document.getElementById('btn-preview-mode');
+    const previewOverlay = document.getElementById('preview-mode-overlay');
+    const btnExitPreview = document.getElementById('btn-exit-preview');
+
+    btnPreview?.addEventListener('click', togglePreviewMode);
+    btnExitPreview?.addEventListener('click', () => previewOverlay.classList.remove('active'));
+
+    function togglePreviewMode() {
+        const scene = document.getElementById('preview-scene');
+        const paper = document.getElementById('letter-paper');
+        const editorMain = document.querySelector('.editor-canvas-area');
+        
+        // Clear previous
+        scene.innerHTML = '';
+        
+        // Clone Background (if any)
+        const bg = editorMain.querySelector('.canvas-background-layer');
+        if (bg) {
+            const bgClone = bg.cloneNode(true);
+            scene.appendChild(bgClone);
+        }
+
+        // Clone Paper
+        const paperClone = paper.cloneNode(true);
+        paperClone.id = 'preview-paper';
+        paperClone.classList.remove('paper-editor-active');
+        paperClone.classList.add('paper-preview-active');
+        
+        // Clean up editor specific classes from clones
+        paperClone.querySelectorAll('.draggable').forEach(el => {
+            el.classList.remove('selected', 'draggable', 'draggable-item');
+            el.querySelector('.selection-overlay')?.remove();
+            
+            // Enable media controls in preview
+            if (el.classList.contains('video-element')) {
+                const video = el.querySelector('video');
+                video.style.pointerEvents = 'auto';
+                video.controls = true;
+            }
+            if (el.classList.contains('audio-item')) {
+                const playBtn = el.querySelector('.audio-play-btn');
+                const audio = el.querySelector('audio');
+                if (playBtn && audio) {
+                    playBtn.style.pointerEvents = 'auto';
+                    playBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (audio.paused) audio.play();
+                        else audio.pause();
+                    });
+                }
+            }
+        });
+
+        scene.appendChild(paperClone);
+        previewOverlay.classList.add('active');
+    }
+
+    // Publishing
+    const btnPublish = document.getElementById('btn-publish-toggle');
+    const successNotif = document.getElementById('publish-success-notification');
+    let isPublished = false;
+
+    btnPublish?.addEventListener('click', () => {
+        if (!isPublished) {
+            isPublished = true;
+            btnPublish.textContent = 'UNPUBLISH';
+            successNotif.classList.remove('hidden');
+            setTimeout(() => {
+                // successNotif.classList.add('hidden');
+            }, 5000);
+        } else {
+            isPublished = false;
+            btnPublish.textContent = 'PUBLISH';
+            successNotif.classList.add('hidden');
+        }
+    });
+
+    document.getElementById('btn-next-letter')?.addEventListener('click', () => {
+        window.location.reload(); // Simple mock for "fresh start"
+    });
+
+    document.getElementById('btn-success-back')?.addEventListener('click', () => {
+        alert("Redirecting to collection...");
+    });
+}
+
+function initVideoSystem() {
+    const addVideoBtn = document.getElementById('btn-add-video');
+    const modalOverlay = document.getElementById('video-modal-overlay');
+    const closeBtn = document.getElementById('btn-close-video-modal');
+    const dropZone = document.getElementById('video-drop-zone');
+    const fileInput = document.getElementById('input-video-file');
+    
+    // States
+    const uploadState = document.getElementById('video-upload-state');
+    const previewState = document.getElementById('video-preview-state');
+    const modalFooter = document.getElementById('video-modal-footer');
+    
+    // Controls
+    const previewVideo = document.getElementById('video-upload-preview');
+    const replaceBtn = document.getElementById('btn-replace-video');
+    const confirmBtn = document.getElementById('btn-add-video-confirm');
+
+    let videoUrl;
+
+    function openModal() {
+        modalOverlay.classList.remove('hidden');
+        showState('upload');
+    }
+
+    function closeModal() {
+        modalOverlay.classList.add('hidden');
+        previewVideo.pause();
+        previewVideo.src = "";
+    }
+
+    function showState(state) {
+        uploadState.classList.add('hidden');
+        previewState.classList.add('hidden');
+        modalFooter.classList.add('hidden');
+
+        if (state === 'upload') uploadState.classList.remove('hidden');
+        if (state === 'preview') {
+            previewState.classList.remove('hidden');
+            modalFooter.classList.remove('hidden');
+        }
+    }
+
+    function handleFile(file) {
+        if (!file) return;
+        if (file.size > 50 * 1024 * 1024) {
+            alert("Video too large (max 50MB)");
+            return;
+        }
+        
+        videoUrl = URL.createObjectURL(file);
+        previewVideo.src = videoUrl;
+        showState('preview');
+    }
+
+    if (addVideoBtn) addVideoBtn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+    }
+
+    if (dropZone) {
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            handleFile(e.dataTransfer.files[0]);
+        });
+    }
+
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+    }
+
+    if (replaceBtn) replaceBtn.addEventListener('click', () => fileInput.click());
+
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', () => {
+            if (videoUrl) {
+                addVideoToCanvas(videoUrl);
+                closeModal();
+            }
+        });
+    }
+
+    // Video Toolbar Layers
+    const layersToggle = document.getElementById('video-layers-toggle-btn');
+    const layersMenu = document.getElementById('video-layers-menu');
+    if (layersToggle && layersMenu) {
+        layersToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeAllTextToolbarMenus();
+            layersMenu.classList.toggle('hidden');
+        });
+    }
+
+    document.querySelectorAll('#video-layers-menu .txt-layers-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!currentSelectedElement) return;
+            const paper = document.getElementById('letter-paper');
+            const allDraggables = Array.from(paper.querySelectorAll('.draggable'));
+            const action = item.getAttribute('data-layer');
+
+            if (action === 'front') {
+                let maxZ = 0;
+                allDraggables.forEach(el => {
+                    const z = parseInt(el.style.zIndex || 10);
+                    if (z > maxZ) maxZ = z;
+                });
+                currentSelectedElement.style.zIndex = maxZ + 1;
+            } else if (action === 'back') {
+                let minZ = Infinity;
+                allDraggables.forEach(el => {
+                    const z = parseInt(el.style.zIndex || 10);
+                    if (z < minZ) minZ = z;
+                });
+                currentSelectedElement.style.zIndex = Math.max(1, minZ - 1);
+            }
+            layersMenu.classList.add('hidden');
+        });
+    });
+}
+
+function addVideoToCanvas(src, x=150, y=150, width=280, height=157.5, angle=0, zIndex=10) {
+    const paper = document.getElementById('letter-paper');
+    if (!paper) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'video-item draggable draggable-item video-element';
+    
+    wrapper.style.left = '0';
+    wrapper.style.top = '0';
+    wrapper.style.width = width + 'px';
+    wrapper.style.height = height + 'px';
+    wrapper.style.zIndex = zIndex;
+    wrapper.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
+    
+    wrapper.setAttribute('data-x', x);
+    wrapper.setAttribute('data-y', y);
+    wrapper.setAttribute('data-angle', angle);
+    wrapper.setAttribute('data-src', src);
+
+    wrapper.innerHTML = `
+        <video src="${src}" playsinline muted loop></video>
+    `;
+
+    paper.appendChild(wrapper);
+    bindElementInteractions(wrapper);
+    selectElement(wrapper);
+}
+
 function selectElement(el) {
     document.querySelectorAll('.text-item.is-text-editing').forEach(w => {
         if (w !== el) exitTextEditMode(w);
@@ -960,12 +2006,87 @@ function selectElement(el) {
     if (el.classList.contains('text-item')) {
         showTextToolbar(el);
         hideElementActionToolbar();
+        hideLinkToolbar();
+        hideImageToolbar();
+        hideAudioToolbar();
         syncTextToolbarFromSelection();
+    } else if (el.classList.contains('link-item')) {
+        hideTextToolbar();
+        hideElementActionToolbar();
+        hideImageToolbar();
+        hideAudioToolbar();
+        showLinkToolbar(el);
+        syncLinkToolbarFromSelection();
+    } else if (el.classList.contains('image-item')) {
+        hideTextToolbar();
+        hideLinkToolbar();
+        hideAudioToolbar();
+        hideElementActionToolbar();
+        showImageToolbar(el);
+    } else if (el.classList.contains('audio-item')) {
+        hideTextToolbar();
+        hideLinkToolbar();
+        hideImageToolbar();
+        hideVideoToolbar();
+        hideElementActionToolbar();
+        showAudioToolbar(el);
+    } else if (el.classList.contains('video-item')) {
+        hideTextToolbar();
+        hideLinkToolbar();
+        hideImageToolbar();
+        hideAudioToolbar();
+        hideElementActionToolbar();
+        showVideoToolbar(el);
     } else {
         hideTextToolbar();
+        hideLinkToolbar();
+        hideImageToolbar();
+        hideAudioToolbar();
+        hideVideoToolbar();
         showElementActionToolbar(el);
     }
 }
+
+function showAudioToolbar(el) {
+    const toolbar = document.getElementById('audio-formatting-toolbar');
+    const rotateBtn = document.getElementById('text-rotate-btn');
+    if (toolbar) toolbar.classList.remove('hidden');
+    if (rotateBtn) rotateBtn.classList.remove('hidden');
+    positionAudioToolbar();
+    closeAllTextToolbarMenus();
+}
+
+function hideAudioToolbar() {
+    const toolbar = document.getElementById('audio-formatting-toolbar');
+    if (toolbar) toolbar.classList.add('hidden');
+}
+
+function positionAudioToolbar() {
+    const toolbar = document.getElementById('audio-formatting-toolbar');
+    const rotateBtn = document.getElementById('text-rotate-btn');
+    if (!currentSelectedElement || !toolbar || toolbar.classList.contains('hidden')) return;
+
+    const rect = currentSelectedElement.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const toolbarH = 36;
+    const gap = 12;
+
+    let top;
+    if (rect.top - toolbarH - gap < 8) {
+        top = rect.bottom + gap;
+    } else {
+        top = rect.top - toolbarH - gap;
+    }
+
+    toolbar.style.top = top + 'px';
+    toolbar.style.left = cx + 'px';
+
+    if (rotateBtn) {
+        rotateBtn.style.left = cx + 'px';
+        rotateBtn.style.top = (rect.bottom + 12) + 'px';
+    }
+}
+
 
 function showElementActionToolbar(el) {
     const toolbar = document.getElementById('element-action-toolbar');
@@ -996,9 +2117,109 @@ function updateToolbarPosition() {
     if (!currentSelectedElement) return;
     if (currentSelectedElement.classList.contains('text-item')) {
         positionTextToolbar();
+    } else if (currentSelectedElement.classList.contains('link-item')) {
+        positionLinkToolbar();
     } else {
         positionElementActionToolbar(currentSelectedElement);
     }
+}
+/**
+ * --- Link Toolbar Management ---
+ */
+function showLinkToolbar(el) {
+    const toolbar = document.getElementById('link-formatting-toolbar');
+    const rotateBtn = document.getElementById('text-rotate-btn'); 
+    if (toolbar) toolbar.classList.remove('hidden');
+    if (rotateBtn) rotateBtn.classList.remove('hidden');
+    positionLinkToolbar();
+    closeAllTextToolbarMenus();
+}
+
+function hideLinkToolbar() {
+    const toolbar = document.getElementById('link-formatting-toolbar');
+    if (toolbar) toolbar.classList.add('hidden');
+}
+
+function positionLinkToolbar() {
+    const toolbar = document.getElementById('link-formatting-toolbar');
+    const rotateBtn = document.getElementById('text-rotate-btn');
+    if (!currentSelectedElement || !toolbar || toolbar.classList.contains('hidden')) return;
+
+    const rect = currentSelectedElement.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const toolbarH = 36;
+    const gap = 12;
+
+    let top;
+    if (rect.top - toolbarH - gap < 8) {
+        top = rect.bottom + gap;
+    } else {
+        top = rect.top - toolbarH - gap;
+    }
+
+    toolbar.style.top = top + 'px';
+    toolbar.style.left = cx + 'px';
+
+    if (rotateBtn) {
+        rotateBtn.style.left = cx + 'px';
+        rotateBtn.style.top = (rect.bottom + 12) + 'px';
+    }
+}
+
+function showImageToolbar(el) {
+    const toolbar = document.getElementById('image-formatting-toolbar');
+    const rotateBtn = document.getElementById('text-rotate-btn');
+    if (toolbar) toolbar.classList.remove('hidden');
+    if (rotateBtn) rotateBtn.classList.remove('hidden');
+    positionImageToolbar();
+    closeAllTextToolbarMenus();
+}
+
+function hideImageToolbar() {
+    const toolbar = document.getElementById('image-formatting-toolbar');
+    if (toolbar) toolbar.classList.add('hidden');
+}
+
+function positionImageToolbar() {
+    const toolbar = document.getElementById('image-formatting-toolbar');
+    const rotateBtn = document.getElementById('text-rotate-btn');
+    if (!currentSelectedElement || !toolbar || toolbar.classList.contains('hidden')) return;
+
+    const rect = currentSelectedElement.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const toolbarH = 36;
+    const gap = 12;
+
+    let top;
+    if (rect.top - toolbarH - gap < 8) {
+        top = rect.bottom + gap;
+    } else {
+        top = rect.top - toolbarH - gap;
+    }
+
+    toolbar.style.top = top + 'px';
+    toolbar.style.left = cx + 'px';
+
+    if (rotateBtn) {
+        rotateBtn.style.left = cx + 'px';
+        rotateBtn.style.top = (rect.bottom + 12) + 'px';
+    }
+}
+
+function syncLinkToolbarFromSelection() {
+    if (!currentSelectedElement || !currentSelectedElement.classList.contains('link-item')) return;
+    
+    const bgColor = currentSelectedElement.style.backgroundColor || getComputedStyle(currentSelectedElement).backgroundColor;
+    const textColor = currentSelectedElement.style.color || getComputedStyle(currentSelectedElement).color;
+    const fontSize = currentSelectedElement.getAttribute('data-font-size') || 16;
+    
+    const boxBtn = document.getElementById('link-box-color-btn');
+    const textBtn = document.getElementById('link-text-color-btn');
+    const fontSizeDisplay = document.getElementById('link-font-size-display');
+    
+    if (boxBtn) boxBtn.style.backgroundColor = bgColor;
+    if (textBtn) textBtn.style.backgroundColor = textColor;
+    if (fontSizeDisplay) fontSizeDisplay.textContent = fontSize;
 }
 
 function positionTextToolbar() {
@@ -1039,10 +2260,8 @@ function showTextToolbar(el) {
     positionTextToolbar();
 
     // Close any open dropdowns / palettes / layers
-    document.querySelectorAll('.txt-dd-list').forEach(l => l.classList.add('hidden'));
-    const cp = document.getElementById('txt-color-popup');
-    if (cp) cp.classList.add('hidden');
-    document.getElementById('layers-menu')?.classList.add('hidden');
+    closeAllTextToolbarMenus();
+    hideLinkToolbar();
 }
 
 function hideTextToolbar() {
@@ -1060,26 +2279,45 @@ function closeAllTextToolbarMenus() {
     if (lm) lm.classList.add('hidden');
 }
 
-function initTxtColorPicker() {
+/**
+ * Generic Color Picker System
+ * Can be triggered by different buttons (Text Color, Box Color)
+ * and applies to different targets (currentSelectedElement style properties).
+ */
+let activeColorPickerTrigger = null; // The button that opened the picker
+
+function initColorPickerSystem() {
     const popup = document.getElementById('txt-color-popup');
-    const btn = document.getElementById('toolbar-color-btn');
     const sv = document.getElementById('txt-color-sv');
     const ind = document.getElementById('txt-color-sv-indicator');
     const hueInput = document.getElementById('txt-color-hue');
     const preview = document.getElementById('txt-color-preview');
     const hexInput = document.getElementById('txt-color-hex');
     const eye = document.getElementById('txt-color-eyedropper');
-    if (!popup || !btn || !sv || !ind || !hueInput || !preview || !hexInput || !eye) return;
+    if (!popup || !sv || !ind || !hueInput || !preview || !hexInput || !eye) return;
 
     let pickerH = 28;
     let pickerS = 0.35;
     let pickerV = 0.45;
 
     function applyRgbToSelected(rgb) {
-        if (!currentSelectedElement || !currentSelectedElement.classList.contains('text-item')) return;
+        if (!currentSelectedElement || !activeColorPickerTrigger) return;
         const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
-        currentSelectedElement.querySelector('.editable-text').style.color = hex;
-        btn.style.backgroundColor = hex;
+        
+        // Determine target based on trigger button ID
+        const tid = activeColorPickerTrigger.id;
+        if (tid === 'toolbar-color-btn') {
+            // Text color (Text element)
+            currentSelectedElement.querySelector('.editable-text').style.color = hex;
+        } else if (tid === 'link-text-color-btn') {
+            // Text/Icon color (Link element)
+            currentSelectedElement.style.color = hex;
+        } else if (tid === 'link-box-color-btn') {
+            // Background color (Link element)
+            currentSelectedElement.style.background = hex;
+        }
+
+        activeColorPickerTrigger.style.backgroundColor = hex;
         preview.style.backgroundColor = hex;
         hexInput.value = hex;
     }
@@ -1097,10 +2335,47 @@ function initTxtColorPicker() {
         applyRgbToSelected(rgb);
     }
 
-    function openFromCurrentText() {
-        if (!currentSelectedElement || !currentSelectedElement.classList.contains('text-item')) return;
-        const tn = currentSelectedElement.querySelector('.editable-text');
-        const rgb = parseColorToRgb(tn.style.color || getComputedStyle(tn).color);
+    function positionColorPopup(btn) {
+        const container = document.getElementById('editor-canvas-container');
+        if (!popup || !container || !btn) return;
+        const btnRect = btn.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        const popupWidth = 200; 
+
+        // Align left of picker with left of button
+        let left = btnRect.left - containerRect.left;
+        let top = btnRect.bottom - containerRect.top + 0; // No gap
+
+        // If it would overflow right edge of container, align right edge of picker with right edge of container
+        if (left + popupWidth > containerRect.width - 15) {
+            left = containerRect.width - popupWidth - 15;
+        }
+        
+        // If it would overflow left edge (sidebar), shift right
+        if (left < 5) {
+            left = 5;
+        }
+
+        popup.style.left = left + 'px';
+        popup.style.top = top + 'px';
+    }
+
+    function openFromTrigger(btn) {
+        activeColorPickerTrigger = btn;
+        positionColorPopup(btn);
+        let currentColor = '#000000';
+        
+        // Get current color from the target
+        if (btn.id === 'toolbar-color-btn') {
+            const tn = currentSelectedElement.querySelector('.editable-text');
+            currentColor = tn.style.color || getComputedStyle(tn).color;
+        } else if (btn.id === 'link-text-color-btn') {
+            currentColor = currentSelectedElement.style.color || getComputedStyle(currentSelectedElement).color;
+        } else if (btn.id === 'link-box-color-btn') {
+            currentColor = currentSelectedElement.style.backgroundColor || getComputedStyle(currentSelectedElement).backgroundColor;
+        }
+
+        const rgb = parseColorToRgb(currentColor);
         const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
         pickerH = hsv.h;
         pickerS = hsv.s;
@@ -1109,19 +2384,26 @@ function initTxtColorPicker() {
         updateSvGradients();
         ind.style.left = `${pickerS * 100}%`;
         ind.style.top = `${(1 - pickerV) * 100}%`;
-        preview.style.backgroundColor = rgbToHex(rgb.r, rgb.g, rgb.b);
-        hexInput.value = rgbToHex(rgb.r, rgb.g, rgb.b);
+        const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+        preview.style.backgroundColor = hex;
+        hexInput.value = hex;
     }
 
-    btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const willOpen = popup.classList.contains('hidden');
-        closeAllTextToolbarMenus();
-        if (willOpen) {
-            popup.classList.remove('hidden');
-            btn.setAttribute('aria-expanded', 'true');
-            openFromCurrentText();
-        }
+    // Attach to all color buttons
+    const colorTriggers = ['toolbar-color-btn', 'link-text-color-btn', 'link-box-color-btn'];
+    colorTriggers.forEach(id => {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const willOpen = popup.classList.contains('hidden') || activeColorPickerTrigger !== btn;
+            closeAllTextToolbarMenus();
+            if (willOpen) {
+                popup.classList.remove('hidden');
+                btn.setAttribute('aria-expanded', 'true');
+                openFromTrigger(btn);
+            }
+        });
     });
 
     function setSvFromPointer(clientX, clientY) {
@@ -1231,7 +2513,7 @@ function initTextToolbar() {
         });
     }
 
-    initTxtColorPicker();
+    // initTxtColorPicker(); // Removed: now handled by initColorPickerSystem() in initEditor
 
     // --- Font family select ---
     document.querySelectorAll('#font-family-list li').forEach(li => {
@@ -1372,7 +2654,7 @@ function initTextToolbar() {
             const y = parseFloat(el.getAttribute('data-y')) || 0;
             el.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
             el.setAttribute('data-angle', angle);
-            positionTextToolbar();
+            updateToolbarPosition();
         };
         const onMouseUp = () => {
             setEditorNativeSelectSuppressed(false);
@@ -1491,23 +2773,26 @@ function bindElementInteractions(wrapper) {
     attachInteractToDraggable(wrapper);
 }
 
-function addStickerToCanvas(imgSrc) {
+function addStickerToCanvas(imgSrc, x=null, y=null, w=null, h=null, angle=null) {
     const paper = document.getElementById('letter-paper');
     if (!paper) return;
 
     const paperRect = paper.getBoundingClientRect();
     const stickerSize = 120;
-    // Place roughly in center of paper
-    const x = Math.max(10, (paperRect.width / 2) - (stickerSize / 2));
-    const y = Math.max(10, (paperRect.height / 2) - (stickerSize / 2));
-    const angle = Math.floor(Math.random() * 10) - 5;
+    
+    // Default to center if no coords provided
+    if (x === null) x = Math.max(10, (paperRect.width / 2) - (stickerSize / 2));
+    if (y === null) y = Math.max(10, (paperRect.height / 2) - (stickerSize / 2));
+    if (angle === null) angle = Math.floor(Math.random() * 10) - 5;
+    if (w === null) w = stickerSize + 'px';
+    if (h === null) h = stickerSize + 'px';
 
     const wrapper = document.createElement('div');
     wrapper.className = 'draggable sticker-item selected';
     wrapper.setAttribute('data-type', 'sticker');
     wrapper.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
-    wrapper.style.width = stickerSize + 'px';
-    wrapper.style.height = stickerSize + 'px';
+    wrapper.style.width = w;
+    wrapper.style.height = h;
     wrapper.style.zIndex = 10;
     wrapper.setAttribute('data-x', x);
     wrapper.setAttribute('data-y', y);
@@ -1588,44 +2873,93 @@ function addTextToCanvas(text, x=50, y=50, w='auto', h='auto', angle=0, styleStr
 // Serialization
 function serializeCanvas() {
     const paper = document.getElementById('letter-paper');
-    if(!paper) return [];
+    if (!paper) return [];
+
     const elements = [];
     paper.querySelectorAll('.draggable').forEach(el => {
-        const data = {
-            type: el.getAttribute('data-type'),
-            x: el.getAttribute('data-x'),
-            y: el.getAttribute('data-y'),
-            angle: el.getAttribute('data-angle'),
-            width: el.style.width,
-            height: el.style.height,
-            zIndex: el.style.zIndex
+        let type = 'element';
+        if (el.classList.contains('text-item')) type = 'text';
+        else if (el.classList.contains('link-item')) type = 'link';
+        else if (el.classList.contains('image-item')) type = 'image';
+
+        const item = {
+            type: type,
+            x: parseFloat(el.getAttribute('data-x')) || 0,
+            y: parseFloat(el.getAttribute('data-y')) || 0,
+            angle: parseFloat(el.getAttribute('data-angle')) || 0,
+            zIndex: el.style.zIndex || 10
         };
-        
-        if (data.type === 'text') {
+
+        if (type === 'text') {
             const textNode = el.querySelector('.editable-text');
-            data.text = textNode.textContent;
-            data.styles = textNode.style.cssText;
-        } else if (data.type === 'image') {
-            const imgNode = el.querySelector('img');
-            data.src = imgNode.src;
+            item.content = textNode.innerHTML;
+            item.fontSize = textNode.style.fontSize;
+            item.fontFamily = textNode.style.fontFamily;
+            item.color = textNode.style.color;
+            item.fontWeight = textNode.style.fontWeight;
+            item.textAlign = textNode.style.textAlign;
+        } else if (type === 'link') {
+            item.url = el.getAttribute('data-url');
+            item.label = el.querySelector('.link-label').textContent;
+            item.fontSize = el.getAttribute('data-font-size');
+            item.bgColor = el.style.backgroundColor;
+            item.textColor = el.style.color;
+        } else if (type === 'image') {
+            item.src = el.getAttribute('data-src');
+            item.width = parseFloat(el.style.width);
+            item.height = parseFloat(el.style.height);
+            // Save crop transform
+            const img = el.querySelector('img');
+            if (img) {
+                item.cropX = parseFloat(img.getAttribute('data-crop-x')) || 0;
+                item.cropY = parseFloat(img.getAttribute('data-crop-y')) || 0;
+            }
+        } else if (type === 'audio') {
+            item.src = el.getAttribute('data-src');
+            item.width = parseFloat(el.style.width);
+            item.height = parseFloat(el.style.height);
+            item.duration = el.getAttribute('data-duration');
+        } else if (type === 'video') {
+            item.src = el.getAttribute('data-src');
+            item.width = parseFloat(el.style.width);
+            item.height = parseFloat(el.style.height);
         }
-        elements.push(data);
+
+        elements.push(item);
     });
     return elements;
 }
 
 function deserializeCanvas(elements) {
-    if(!elements || elements.length === 0) return;
-    elements.forEach(el => {
-        if(el.type === 'text') {
-            addTextToCanvas(el.text, el.x, el.y, el.width, el.height, el.angle, el.styles);
-        } else if(el.type === 'image') {
-            addPhotocardToCanvas(el.src, el.x, el.y, el.width, el.height, el.angle);
+    if (!elements || !Array.isArray(elements)) return;
+    const paper = document.getElementById('letter-paper');
+    if (!paper) return;
+    paper.innerHTML = '';
+
+    elements.forEach(item => {
+        if (item.type === 'text') {
+            addTextToCanvas(item.content, item.x, item.y, item.angle, item.fontSize, item.fontFamily, item.color, item.fontWeight, item.textAlign, item.zIndex);
+        } else if (item.type === 'link') {
+            addLinkToCanvas(item.url, item.label, item.x, item.y, item.angle, item.bgColor, item.textColor, item.zIndex, item.fontSize);
+        } else if (item.type === 'image') {
+            addImageToCanvas(item.src, item.x, item.y, item.width, item.height, item.angle, item.zIndex, item.cropX, item.cropY);
+        } else if (item.type === 'audio') {
+            addAudioToCanvas(item.src, item.duration, item.x, item.y, item.width, item.height, item.angle, item.zIndex);
+        } else if (item.type === 'video') {
+            addVideoToCanvas(item.src, item.x, item.y, item.width, item.height, item.angle, item.zIndex);
         }
     });
-    
+
     // Deselect all
-    document.querySelectorAll('.draggable').forEach(item => item.classList.remove('selected'));
+    document.querySelectorAll('.draggable').forEach(item => {
+        item.classList.remove('selected');
+        item.querySelector('.selection-overlay')?.remove();
+    });
     currentSelectedElement = null;
     hideTextToolbar();
+    hideLinkToolbar();
+    hideImageToolbar();
+    hideAudioToolbar();
+    hideVideoToolbar();
+    hideElementActionToolbar();
 }
