@@ -1,0 +1,78 @@
+/* Color Palette & Variables */
+:root {
+    --bg-color: #E0F5EE;
+    --primary-brown: #866144;
+    --muted-brown: #968571;
+    --envelope-cream: #F5EFEB;
+    --envelope-shadow: rgba(134, 97, 68, 0.08);
+
+    --font-heading: 'Gorditas', display;
+    --font-body: 'Inter', sans-serif;
+    --font-logo: 'Great Vibes', cursive;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--primary-brown);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Typography Hierarchy */
+.main-heading {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+    color: var(--primary-brown);
+}
+
+.text-center {
+    text-align: center;
+}
+
+.logo {
+    font-family: var(--font-logo);
+    font-size: 1.6rem;
+    color: var(--muted-brown);
+    opacity: 0.6;
+    user-select: none;
+}
+
+.absolute-logo {
+    position: absolute;
+    top: 40px;
+    left: 48px;
+    font-family: var(--font-logo);
+    font-size: 1.6rem;
+    color: var(--muted-brown);
+    opacity: 0.6;
+    user-select: none;
+}
+
+.absolute-top-right {
+    position: absolute;
+    top: 40px;
+    right: 48px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    z-index: 100;
+}
+
+.muted-description {
+    color: var(--muted-brown);
+    font-size: 1.1rem;
+    font-weight: 400;
+    margin-top: 0.5rem;
+}

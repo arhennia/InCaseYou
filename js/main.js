@@ -23,6 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const page = document.body.dataset.page;
+    const assetBase = '../assets/';
+    const rootBase = '../';
+    const pageBase = '';
 
     // --- LANDING PAGE ---
     if (page === 'landing') {
@@ -52,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 appState.from = inputFrom.value.trim();
                 appState.note = inputNote.value.trim();
                 saveState();
-                window.location.href = 'collection.html';
+                window.location.href = pageBase + 'collection.html';
             });
         }
     }
@@ -60,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- COLLECTION PAGE ---
     if (page === 'collection') {
         if (!appState.for || !appState.from) {
-            window.location.href = 'index.html';
+            window.location.href = rootBase + 'index.html';
             return;
         }
 
@@ -680,67 +683,67 @@ function initEditor(letterData) {
         {
             name: 'ribbons',
             items: [
-                'images/stickers/ribbons/blue ribbon.png',
-                'images/stickers/ribbons/brown ribbon.png',
-                'images/stickers/ribbons/red ribbon.png',
-                'images/stickers/ribbons/pink ribbon.png',
-                'images/stickers/ribbons/checked red ribbon.png',
-                'images/stickers/ribbons/checked green ribbon.png',
+                assetBase + 'images/stickers/ribbons/blue ribbon.png',
+                assetBase + 'images/stickers/ribbons/brown ribbon.png',
+                assetBase + 'images/stickers/ribbons/red ribbon.png',
+                assetBase + 'images/stickers/ribbons/pink ribbon.png',
+                assetBase + 'images/stickers/ribbons/checked red ribbon.png',
+                assetBase + 'images/stickers/ribbons/checked green ribbon.png',
             ]
         },
         {
             name: 'flowers',
             items: [
-                'images/stickers/flowers/blue flower.png',
-                'images/stickers/flowers/brown flower.png',
-                'images/stickers/flowers/red flower.png',
-                'images/stickers/flowers/pink flower.png',
-                'images/stickers/flowers/white flower.png',
-                'images/stickers/flowers/green clover.png',
+                assetBase + 'images/stickers/flowers/blue flower.png',
+                assetBase + 'images/stickers/flowers/brown flower.png',
+                assetBase + 'images/stickers/flowers/red flower.png',
+                assetBase + 'images/stickers/flowers/pink flower.png',
+                assetBase + 'images/stickers/flowers/white flower.png',
+                assetBase + 'images/stickers/flowers/green clover.png',
             ]
         },
         {
             name: 'frames',
             items: [
-                'images/stickers/frames/cam 1 frame.png',
-                'images/stickers/frames/cam 2 frame.png',
-                'images/stickers/frames/film 1 frame.png',
-                'images/stickers/frames/film 3 frame.png',
-                'images/stickers/frames/iphone frame.png',
-                'images/stickers/frames/stamp frame.png',
+                assetBase + 'images/stickers/frames/cam 1 frame.png',
+                assetBase + 'images/stickers/frames/cam 2 frame.png',
+                assetBase + 'images/stickers/frames/film 1 frame.png',
+                assetBase + 'images/stickers/frames/film 3 frame.png',
+                assetBase + 'images/stickers/frames/iphone frame.png',
+                assetBase + 'images/stickers/frames/stamp frame.png',
             ]
         },
         {
             name: 'stamps',
             items: [
-                'images/stickers/stamps/blue stamp.png',
-                'images/stickers/stamps/brown stamp.png',
-                'images/stickers/stamps/green stamp.png',
-                'images/stickers/stamps/pink stamp.png',
-                'images/stickers/stamps/red stamp.png',
-                'images/stickers/stamps/white stamp.png',
+                assetBase + 'images/stickers/stamps/blue stamp.png',
+                assetBase + 'images/stickers/stamps/brown stamp.png',
+                assetBase + 'images/stickers/stamps/green stamp.png',
+                assetBase + 'images/stickers/stamps/pink stamp.png',
+                assetBase + 'images/stickers/stamps/red stamp.png',
+                assetBase + 'images/stickers/stamps/white stamp.png',
             ]
         },
         {
             name: 'papers',
             items: [
-                'images/stickers/papers/blue paper.png',
-                'images/stickers/papers/fav person paper.png',
-                'images/stickers/papers/good luck paper.png',
-                'images/stickers/papers/good stamp paper.png',
-                'images/stickers/papers/ily paper.png',
-                'images/stickers/papers/pink paper.png',
+                assetBase + 'images/stickers/papers/blue paper.png',
+                assetBase + 'images/stickers/papers/fav person paper.png',
+                assetBase + 'images/stickers/papers/good luck paper.png',
+                assetBase + 'images/stickers/papers/good stamp paper.png',
+                assetBase + 'images/stickers/papers/ily paper.png',
+                assetBase + 'images/stickers/papers/pink paper.png',
             ]
         },
         {
             name: 'memes',
             items: [
-                'images/stickers/memes/cat meme.png',
-                'images/stickers/memes/hamster meme.png',
-                'images/stickers/memes/kitten meme.png',
-                'images/stickers/memes/man meme.png',
-                'images/stickers/memes/pepe meme.png',
-                'images/stickers/memes/sbsp meme.png',
+                assetBase + 'images/stickers/memes/cat meme.png',
+                assetBase + 'images/stickers/memes/hamster meme.png',
+                assetBase + 'images/stickers/memes/kitten meme.png',
+                assetBase + 'images/stickers/memes/man meme.png',
+                assetBase + 'images/stickers/memes/pepe meme.png',
+                assetBase + 'images/stickers/memes/sbsp meme.png',
             ]
         }
     ];
@@ -2498,12 +2501,18 @@ function initColorPickerSystem() {
         if (!btn) return;
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const willOpen = popup.classList.contains('hidden') || activeColorPickerTrigger !== btn;
+            e.preventDefault();
+            const isHidden = popup.classList.contains('hidden');
+            const isDifferentTrigger = activeColorPickerTrigger !== btn;
+            
             closeAllTextToolbarMenus();
-            if (willOpen) {
+            
+            if (isHidden || isDifferentTrigger) {
                 popup.classList.remove('hidden');
                 btn.setAttribute('aria-expanded', 'true');
                 openFromTrigger(btn);
+            } else {
+                popup.classList.add('hidden');
             }
         });
     });
@@ -2692,13 +2701,15 @@ function initTextToolbar() {
 
     // --- Format buttons (bold) ---
     document.querySelectorAll('.format-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
             if (!currentSelectedElement || !currentSelectedElement.classList.contains('text-item')) return;
             const format = btn.getAttribute('data-format');
             const textNode = currentSelectedElement.querySelector('.editable-text');
             if (format === 'bold') {
-                const currentWeight = window.getComputedStyle(textNode).fontWeight;
-                const isBold = currentWeight === 'bold' || currentWeight === '700';
+                const style = window.getComputedStyle(textNode);
+                const isBold = style.fontWeight === 'bold' || parseInt(style.fontWeight) >= 600;
                 textNode.style.fontWeight = isBold ? 'normal' : 'bold';
                 btn.classList.toggle('active', !isBold);
             }
@@ -2756,9 +2767,13 @@ function initTextToolbar() {
 
     // --- Action buttons (duplicate, delete) ---
     document.querySelectorAll('.action-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
             if (!currentSelectedElement) return;
             const action = btn.getAttribute('data-action');
+            
+            // Handle actions...
 
             if (action === 'duplicate') {
                 const clone = currentSelectedElement.cloneNode(true);
