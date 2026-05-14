@@ -182,6 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initTextToolbar();
         initLinkSystem();
         initImageSystem();
+        initImageToolbar();
         initAudioSystem();
         initVideoSystem();
         initEditorActions();
@@ -1112,7 +1113,7 @@ function initLinkSystem() {
     });
 }
 
-function addLinkToCanvas(url, label, x=100, y=100, angle=0, bgColor='#333333', textColor='#ffffff', zIndex=10, fontSize=16) {
+function addLinkToCanvas(url, label, x=150, y=150, angle=0, bgColor='#333333', textColor='#ffffff', zIndex=10, fontSize=16) {
     const paper = document.getElementById('letter-paper');
     if (!paper) return;
 
@@ -1180,19 +1181,18 @@ function addLinkToCanvas(url, label, x=100, y=100, angle=0, bgColor='#333333', t
 }
 
 function initImageSystem() {
-    const addImageBtn = document.getElementById('btn-add-image');
     const modalOverlay = document.getElementById('image-modal-overlay');
     const closeBtn = document.getElementById('btn-close-image-modal');
+    const fileInput = document.getElementById('image-file-input');
     const dropZone = document.getElementById('image-drop-zone');
-    const fileInput = document.getElementById('input-image-file');
-    const previewState = document.getElementById('image-preview-state');
     const uploadState = document.getElementById('image-upload-state');
-    const previewImg = document.getElementById('img-upload-preview');
-    const modalFooter = document.getElementById('image-modal-footer');
+    const previewState = document.getElementById('image-preview-state');
+    const previewImg = document.getElementById('upload-preview-img');
     const replaceBtn = document.getElementById('btn-replace-image');
-    const confirmBtn = document.getElementById('btn-add-image-confirm');
+    const confirmAddBtn = document.getElementById('btn-add-image-confirm');
+    const btnAddImageSidebar = document.getElementById('btn-add-image');
 
-    let currentImageDataUrl = null;
+    let currentFile = null;
 
     function openModal() {
         modalOverlay.classList.remove('hidden');
@@ -1206,134 +1206,152 @@ function initImageSystem() {
     function resetModal() {
         uploadState.classList.remove('hidden');
         previewState.classList.add('hidden');
-        modalFooter.classList.add('hidden');
         fileInput.value = '';
-        currentImageDataUrl = null;
+        currentFile = null;
     }
 
-    function showPreview(file) {
+    function handleFile(file) {
         if (!file || !file.type.startsWith('image/')) return;
         if (file.size > 10 * 1024 * 1024) {
             alert('File too large (max 10MB)');
             return;
         }
 
+        currentFile = file;
         const reader = new FileReader();
         reader.onload = (e) => {
-            currentImageDataUrl = e.target.result;
-            previewImg.src = currentImageDataUrl;
+            previewImg.src = e.target.result;
             uploadState.classList.add('hidden');
             previewState.classList.remove('hidden');
-            modalFooter.classList.remove('hidden');
         };
         reader.readAsDataURL(file);
     }
 
-    if (addImageBtn) addImageBtn.addEventListener('click', openModal);
-    if (closeBtn) closeBtn.addEventListener('click', closeModal);
-    if (modalOverlay) {
-        modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) closeModal();
-        });
-    }
-
-    if (dropZone) {
-        dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = 'var(--primary-brown)';
-            dropZone.style.background = 'rgba(255, 255, 255, 0.8)';
-        });
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.style.borderColor = '';
-            dropZone.style.background = '';
-        });
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = '';
-            dropZone.style.background = '';
-            const file = e.dataTransfer.files[0];
-            showPreview(file);
-        });
-    }
-
-    if (fileInput) {
-        fileInput.addEventListener('change', (e) => {
-            showPreview(e.target.files[0]);
-        });
-    }
-
-    if (replaceBtn) replaceBtn.addEventListener('click', () => resetModal());
-
-    if (confirmBtn) {
-        confirmBtn.addEventListener('click', () => {
-            if (currentImageDataUrl) {
-                addImageToCanvas(currentImageDataUrl);
-                closeModal();
-            }
-        });
-    }
-
-    // Image Toolbar: Crop Toggle
-    const cropBtn = document.getElementById('btn-image-crop');
-    const cropConfirmBtn = document.getElementById('btn-image-crop-confirm');
+    btnAddImageSidebar?.addEventListener('click', openModal);
+    closeBtn?.addEventListener('click', closeModal);
     
-    if (cropBtn) {
-        cropBtn.addEventListener('click', () => {
-            if (currentSelectedElement && currentSelectedElement.classList.contains('image-item')) {
-                currentSelectedElement.classList.add('is-cropping');
-                cropBtn.classList.add('hidden');
-                cropConfirmBtn.classList.remove('hidden');
-            }
-        });
-    }
+    modalOverlay?.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) closeModal();
+    });
 
-    if (cropConfirmBtn) {
-        cropConfirmBtn.addEventListener('click', () => {
-            if (currentSelectedElement && currentSelectedElement.classList.contains('image-item')) {
-                currentSelectedElement.classList.remove('is-cropping');
-                cropConfirmBtn.classList.add('hidden');
-                cropBtn.classList.remove('hidden');
-            }
-        });
-    }
+    dropZone?.addEventListener('click', () => fileInput.click());
+    dropZone?.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--primary-brown)';
+        dropZone.style.background = 'rgba(255, 255, 255, 0.6)';
+    });
+    dropZone?.addEventListener('dragleave', () => {
+        dropZone.style.borderColor = '';
+        dropZone.style.background = '';
+    });
+    dropZone?.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '';
+        dropZone.style.background = '';
+        const file = e.dataTransfer.files[0];
+        handleFile(file);
+    });
 
-    // Toolbar Layers
-    const layersToggle = document.getElementById('image-layers-toggle-btn');
+    fileInput?.addEventListener('change', (e) => {
+        handleFile(e.target.files[0]);
+    });
+
+    replaceBtn?.addEventListener('click', () => resetModal());
+
+    confirmAddBtn?.addEventListener('click', () => {
+        if (previewImg.src) {
+            addImageToCanvas(previewImg.src);
+            closeModal();
+        }
+    });
+}
+
+function initImageToolbar() {
+    const btnCrop = document.getElementById('btn-image-crop');
+    const btnLayers = document.getElementById('btn-image-layers');
     const layersMenu = document.getElementById('image-layers-menu');
-    if (layersToggle && layersMenu) {
-        layersToggle.addEventListener('click', (e) => {
+    const btnDuplicate = document.getElementById('btn-image-duplicate');
+    const btnDelete = document.getElementById('btn-image-delete');
+
+    if (btnCrop) {
+        btnCrop.addEventListener('click', () => {
+            if (currentSelectedElement && currentSelectedElement.classList.contains('image-item')) {
+                const isCropping = currentSelectedElement.classList.toggle('is-cropping');
+                btnCrop.classList.toggle('active', isCropping);
+                
+                // Toggle confirmation icon inside crop button
+                const iconCrop = btnCrop.querySelector('.icon-crop');
+                const iconConfirm = btnCrop.querySelector('.icon-confirm');
+                if (iconCrop && iconConfirm) {
+                    iconCrop.classList.toggle('hidden', isCropping);
+                    iconConfirm.classList.toggle('hidden', !isCropping);
+                }
+            }
+        });
+    }
+
+    if (btnLayers && layersMenu) {
+        btnLayers.addEventListener('click', (e) => {
             e.stopPropagation();
-            closeAllTextToolbarMenus();
             layersMenu.classList.toggle('hidden');
         });
+
+        layersMenu.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!currentSelectedElement) return;
+                const action = btn.getAttribute('data-action');
+                const paper = document.getElementById('letter-paper');
+                const draggables = Array.from(paper.querySelectorAll('.draggable'));
+
+                if (action === 'front') {
+                    let maxZ = 10;
+                    draggables.forEach(el => maxZ = Math.max(maxZ, parseInt(el.style.zIndex || 10)));
+                    currentSelectedElement.style.zIndex = maxZ + 1;
+                } else {
+                    let minZ = 10;
+                    draggables.forEach(el => minZ = Math.min(minZ, parseInt(el.style.zIndex || 10)));
+                    currentSelectedElement.style.zIndex = Math.max(1, minZ - 1);
+                }
+                layersMenu.classList.add('hidden');
+            });
+        });
     }
 
-    document.querySelectorAll('#image-layers-menu .txt-layers-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (!currentSelectedElement) return;
-            const paper = document.getElementById('letter-paper');
-            const allDraggables = Array.from(paper.querySelectorAll('.draggable'));
-            const action = item.getAttribute('data-layer');
+    if (btnDuplicate) {
+        btnDuplicate.addEventListener('click', () => {
+            if (!currentSelectedElement || !currentSelectedElement.classList.contains('image-item')) return;
+            const el = currentSelectedElement;
+            const src = el.getAttribute('data-src');
+            const x = (parseFloat(el.getAttribute('data-x')) || 0) + 20;
+            const y = (parseFloat(el.getAttribute('data-y')) || 0) + 20;
+            const w = parseFloat(el.style.width);
+            const h = parseFloat(el.style.height);
+            const angle = parseFloat(el.getAttribute('data-angle')) || 0;
+            const z = parseInt(el.style.zIndex || 10);
+            
+            const imgNode = el.querySelector('img');
+            const cx = parseFloat(imgNode.getAttribute('data-crop-x')) || 0;
+            const cy = parseFloat(imgNode.getAttribute('data-crop-y')) || 0;
 
-            if (action === 'front') {
-                let maxZ = 0;
-                allDraggables.forEach(el => {
-                    const z = parseInt(el.style.zIndex || 10);
-                    if (z > maxZ) maxZ = z;
-                });
-                currentSelectedElement.style.zIndex = maxZ + 1;
-            } else if (action === 'back') {
-                let minZ = Infinity;
-                allDraggables.forEach(el => {
-                    const z = parseInt(el.style.zIndex || 10);
-                    if (z < minZ) minZ = z;
-                });
-                currentSelectedElement.style.zIndex = Math.max(1, minZ - 1);
-            }
-            layersMenu.classList.add('hidden');
+            addImageToCanvas(src, x, y, w, h, angle, z, cx, cy);
         });
+    }
+
+    if (btnDelete) {
+        btnDelete.addEventListener('click', () => {
+            if (currentSelectedElement) {
+                currentSelectedElement.remove();
+                currentSelectedElement = null;
+                hideImageToolbar();
+            }
+        });
+    }
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.txt-layers-wrap')) {
+            layersMenu?.classList.add('hidden');
+        }
     });
 }
 
@@ -1578,7 +1596,7 @@ function initAudioSystem() {
     });
 }
 
-function addAudioToCanvas(src, durationStr, x=100, y=100, width=280, height=44, angle=0, zIndex=10) {
+function addAudioToCanvas(src, durationStr, x=150, y=150, width=280, height=44, angle=0, zIndex=10) {
     const paper = document.getElementById('letter-paper');
     if (!paper) return;
 
@@ -1625,65 +1643,67 @@ function addAudioToCanvas(src, durationStr, x=100, y=100, width=280, height=44, 
     selectElement(wrapper);
 }
 
-function addImageToCanvas(src, x=150, y=150, width=200, height=200, angle=0, zIndex=10, cropX=0, cropY=0) {
+function addImageToCanvas(src, x=150, y=150, width=240, height=240, angle=0, zIndex=10, cropX=0, cropY=0) {
     const paper = document.getElementById('letter-paper');
     if (!paper) return;
 
     const wrapper = document.createElement('div');
-    wrapper.className = 'image-item draggable draggable-item image-element';
+    wrapper.className = 'draggable image-item selected';
+    wrapper.setAttribute('data-type', 'image');
+    wrapper.setAttribute('data-src', src);
     
-    wrapper.style.left = '0';
-    wrapper.style.top = '0';
-    wrapper.style.width = width + 'px';
-    wrapper.style.height = height + 'px';
-    wrapper.style.zIndex = zIndex;
     wrapper.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
+    wrapper.style.width = `${width}px`;
+    wrapper.style.height = `${height}px`;
+    wrapper.style.zIndex = zIndex;
     
     wrapper.setAttribute('data-x', x);
     wrapper.setAttribute('data-y', y);
     wrapper.setAttribute('data-angle', angle);
-    wrapper.setAttribute('data-src', src);
 
-    wrapper.innerHTML = `
-        <div class="crop-frame">
-            <img src="${src}" alt="Canvas Image" style="transform: translate(${cropX}px, ${cropY}px);" data-crop-x="${cropX}" data-crop-y="${cropY}">
-        </div>
-    `;
+    const img = document.createElement('img');
+    img.src = src;
+    img.draggable = false;
+    img.style.transform = `translate(${cropX}px, ${cropY}px)`;
+    img.setAttribute('data-crop-x', cropX);
+    img.setAttribute('data-crop-y', cropY);
 
-    // Internal panning for crop
-    const img = wrapper.querySelector('img');
+    wrapper.appendChild(img);
+    paper.appendChild(wrapper);
+
+    // Internal dragging for crop mode
     let isPanning = false;
-    let panStartX, panStartY;
-    let baseCropX = cropX, baseCropY = cropY;
+    let startX, startY, baseCX, baseCY;
 
-    img.addEventListener('mousedown', (e) => {
+    wrapper.addEventListener('mousedown', (e) => {
         if (!wrapper.classList.contains('is-cropping')) return;
         e.stopPropagation();
         isPanning = true;
-        panStartX = e.clientX;
-        panStartY = e.clientY;
-        baseCropX = parseFloat(img.getAttribute('data-crop-x')) || 0;
-        baseCropY = parseFloat(img.getAttribute('data-crop-y')) || 0;
+        startX = e.clientX;
+        startY = e.clientY;
+        baseCX = parseFloat(img.getAttribute('data-crop-x')) || 0;
+        baseCY = parseFloat(img.getAttribute('data-crop-y')) || 0;
+        wrapper.style.cursor = 'grabbing';
     });
 
     window.addEventListener('mousemove', (e) => {
         if (!isPanning) return;
-        const dx = e.clientX - panStartX;
-        const dy = e.clientY - panStartY;
-        const newX = baseCropX + dx;
-        const newY = baseCropY + dy;
-        img.style.transform = `translate(${newX}px, ${newY}px)`;
-        img.setAttribute('data-crop-x', newX);
-        img.setAttribute('data-crop-y', newY);
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        const newCX = baseCX + dx;
+        const newCY = baseCY + dy;
+        img.style.transform = `translate(${newCX}px, ${newCY}px)`;
+        img.setAttribute('data-crop-x', newCX);
+        img.setAttribute('data-crop-y', newCY);
     });
 
     window.addEventListener('mouseup', () => {
-        isPanning = false;
+        if (isPanning) {
+            isPanning = false;
+            wrapper.style.cursor = '';
+        }
     });
 
-    paper.appendChild(wrapper);
-    bindElementInteractions(wrapper);
-    paper.appendChild(wrapper);
     bindElementInteractions(wrapper);
     selectElement(wrapper);
 }
@@ -2839,7 +2859,7 @@ function addPhotocardToCanvas(imgSrc, x=100, y=100, w='auto', h='auto', angle=nu
     selectElement(wrapper);
 }
 
-function addTextToCanvas(text, x=50, y=50, w='auto', h='auto', angle=0, styleString='') {
+function addTextToCanvas(text, x=150, y=150, w='auto', h='auto', angle=0, styleString='') {
     const paper = document.getElementById('letter-paper');
     if (!paper) return;
 
@@ -2881,6 +2901,8 @@ function serializeCanvas() {
         if (el.classList.contains('text-item')) type = 'text';
         else if (el.classList.contains('link-item')) type = 'link';
         else if (el.classList.contains('image-item')) type = 'image';
+        else if (el.classList.contains('audio-item')) type = 'audio';
+        else if (el.classList.contains('video-item')) type = 'video';
 
         const item = {
             type: type,

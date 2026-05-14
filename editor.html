@@ -469,42 +469,6 @@
                     </div>
                 </div> <!-- end minimal-modal -->
                 
-                <!-- Image Modal -->
-                <div id="image-modal-overlay" class="modal-overlay hidden">
-                    <div class="minimal-modal image-modal" id="image-modal">
-                        <div class="modal-header">
-                            <h2 id="image-modal-title">add image</h2>
-                            <button class="modal-close" id="btn-close-image-modal">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                            <!-- Initial Upload State -->
-                            <div id="image-upload-state" class="modal-state">
-                                <div class="image-drop-zone" id="image-drop-zone">
-                                    <div class="drop-content">
-                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="drop-icon"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                                        <p class="drop-text">DROP AN IMAGE FILE OR BROWSE</p>
-                                        <p class="drop-hint">MAX SIZE: 10MB</p>
-                                    </div>
-                                    <input type="file" id="input-image-file" accept="image/png, image/jpeg, image/jpg, image/webp" hidden>
-                                </div>
-                            </div>
-
-                            <!-- Preview State -->
-                            <div id="image-preview-state" class="modal-state hidden">
-                                <div class="image-preview-container">
-                                    <img id="img-upload-preview" src="" alt="Preview">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer hidden" id="image-modal-footer">
-                            <button class="btn-outline" id="btn-replace-image">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                                REPLACE
-                            </button>
-                            <button class="btn-primary" id="btn-add-image-confirm">ADD</button>
-                        </div>
-                    </div>
-                </div>
                 <!-- Audio Modal -->
                 <div id="audio-modal-overlay" class="modal-overlay hidden">
                     <div class="minimal-modal audio-modal" id="audio-modal">
@@ -627,6 +591,73 @@
                     </div>
                 </div>
             </div> <!-- end link-modal-overlay -->
+
+            <!-- Image Modal -->
+            <div id="image-modal-overlay" class="modal-overlay hidden">
+                <div class="minimal-modal image-modal" id="image-modal">
+                    <div class="modal-header">
+                        <h2 id="image-modal-title">add image</h2>
+                        <button class="modal-close" id="btn-close-image-modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Upload State -->
+                        <div id="image-upload-state" class="upload-zone-wrapper">
+                            <label for="image-file-input" class="image-drop-zone" id="image-drop-zone">
+                                <input type="file" id="image-file-input" accept="image/png, image/jpeg, image/webp" hidden>
+                                <div class="drop-icon">
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                </div>
+                                <span class="drop-text">DROP AN IMAGE FILE OR BROWSE</span>
+                                <span class="drop-hint">MAX SIZE: 10MB</span>
+                            </label>
+                        </div>
+                        
+                        <!-- Preview State -->
+                        <div id="image-preview-state" class="image-preview-wrapper hidden">
+                            <div class="preview-container">
+                                <img id="upload-preview-img" src="" alt="Preview">
+                            </div>
+                            <div class="preview-actions">
+                                <button class="btn-outline compact" id="btn-replace-image">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                                    REPLACE
+                                </button>
+                                <button class="btn-primary compact" id="btn-add-image-confirm">ADD</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Floating Image Toolbar -->
+            <div id="image-formatting-toolbar" class="txt-toolbar hidden">
+                <button class="txt-btn" id="btn-image-crop" title="Crop">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-crop"><path d="M6 1v3H1"/><path d="M1 6h3.5a2 2 0 0 1 2 2V22"/><path d="M23 18h-3.5a2 2 0 0 1-2-2V1"/><path d="M18 23v-3h5"/></svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="icon-confirm hidden"><polyline points="20 6 9 17 4 12"/></svg>
+                </button>
+                <div class="txt-divider"></div>
+
+                    <!-- Layer Ordering -->
+                    <div class="txt-layers-wrap">
+                        <button class="txt-btn" id="btn-image-layers" title="Layers">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                        </button>
+                        <div class="txt-layers-menu hidden" id="image-layers-menu">
+                            <button class="txt-layers-item" data-action="front">bring to front</button>
+                            <button class="txt-layers-item" data-action="back">send to back</button>
+                        </div>
+                    </div>
+
+                    <!-- Duplicate -->
+                    <button class="txt-btn" id="btn-image-duplicate" title="Duplicate">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    </button>
+
+                    <!-- Delete -->
+                    <button class="txt-btn txt-btn-danger" id="btn-image-delete" title="Delete">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    </button>
+            </div>
 
             <!-- Edit Title Modal -->
             <div id="title-modal-overlay" class="modal-overlay hidden">
