@@ -1131,19 +1131,7 @@ function addLinkToCanvas(url, label, x=150, y=150, angle=0, bgColor='#333333', t
     wrapper.setAttribute('data-angle', angle);
     wrapper.setAttribute('data-font-size', fontSize);
 
-    wrapper.innerHTML = `<div class="modal-footer" id="audio-modal-footer">
-                                <div class="footer-left">
-                                    <button class="btn-outline compact" id="btn-audio-replace">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                                        REPLACE
-                                    </button>
-                                    <button class="btn-outline compact" id="btn-audio-re-record">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                                        RE-RECORD
-                                    </button>
-                                </div>
-                                <button class="btn-primary compact" id="btn-add-audio-confirm">ADD</button>
-                            </div>
+    wrapper.innerHTML = `
         <svg class="link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
