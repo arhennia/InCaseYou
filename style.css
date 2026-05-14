@@ -3222,6 +3222,7 @@ button {
     cursor: grab;
     user-select: none;
     touch-action: none;
+    overflow: visible;
 }
 
 .audio-item:active {
@@ -3237,10 +3238,16 @@ button {
     gap: 12px;
     min-width: 240px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    transform-origin: center left;
 }
 
 .audio-item-inner .play-btn {
     opacity: 0.9;
+}
+
+.audio-item-inner .waveform-bars,
+.audio-item-inner .duration-text {
+    pointer-events: none;
 }
 
 .audio-item-inner .waveform-bars span {
