@@ -286,6 +286,7 @@ function dragMoveListener(event) {
         target = target.closest('.draggable');
     }
     if (!target || !target.classList.contains('draggable')) return;
+    if (target.classList.contains('is-cropping')) return; // DON'T drag frame when panning image
 
     const inv = getCanvasInvScale();
     const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx * inv;
@@ -325,7 +326,24 @@ function resizeMoveListener(event) {
         target.style.width = (event.rect.width * inv) + 'px';
         target.style.height = (event.rect.height * inv) + 'px';
     } else if (target.classList.contains('is-cropping')) {
-        // Crop mode resize: only resize the frame
+        // Masking Crop: Resize the frame, keep image stationary relative to canvas
+        const dx = event.deltaRect.left * inv;
+        const dy = event.deltaRect.top * inv;
+        
+        const img = target.querySelector('img');
+        if (img) {
+            let cx = parseFloat(img.getAttribute('data-crop-x')) || 0;
+            let cy = parseFloat(img.getAttribute('data-crop-y')) || 0;
+            
+            // Image moves opposite to frame movement to stay fixed on paper
+            cx -= dx;
+            cy -= dy;
+            
+            img.style.transform = `translate(${cx}px, ${cy}px)`;
+            img.setAttribute('data-crop-x', cx);
+            img.setAttribute('data-crop-y', cy);
+        }
+
         target.style.width = (event.rect.width * inv) + 'px';
         target.style.height = (event.rect.height * inv) + 'px';
     } else {
@@ -1250,7 +1268,7 @@ function initImageSystem() {
         if (e.target === modalOverlay) closeModal();
     });
 
-    dropZone?.addEventListener('click', () => fileInput.click());
+    // dropZone is a label with for="...", no need to click manually
     dropZone?.addEventListener('dragover', (e) => {
         e.preventDefault();
         dropZone.style.borderColor = 'var(--primary-brown)';
@@ -1324,7 +1342,7 @@ function initImageToolbar() {
                     let maxZ = 10;
                     draggables.forEach(el => maxZ = Math.max(maxZ, parseInt(el.style.zIndex || 10)));
                     currentSelectedElement.style.zIndex = maxZ + 1;
-                } else {
+                } else if (action === 'back') {
                     let minZ = 10;
                     draggables.forEach(el => minZ = Math.min(minZ, parseInt(el.style.zIndex || 10)));
                     currentSelectedElement.style.zIndex = Math.max(1, minZ - 1);
@@ -1681,6 +1699,9 @@ function addImageToCanvas(src, x=150, y=150, width=240, height=240, angle=0, zIn
     wrapper.setAttribute('data-y', y);
     wrapper.setAttribute('data-angle', angle);
 
+    const cropFrame = document.createElement('div');
+    cropFrame.className = 'crop-frame';
+    
     const img = document.createElement('img');
     img.src = src;
     img.draggable = false;
@@ -1688,7 +1709,8 @@ function addImageToCanvas(src, x=150, y=150, width=240, height=240, angle=0, zIn
     img.setAttribute('data-crop-x', cropX);
     img.setAttribute('data-crop-y', cropY);
 
-    wrapper.appendChild(img);
+    cropFrame.appendChild(img);
+    wrapper.appendChild(cropFrame);
     paper.appendChild(wrapper);
 
     // Internal dragging for crop mode
@@ -1961,13 +1983,41 @@ function initVideoSystem() {
         });
     }
 
+    // Video Toolbar Duplicate/Delete
+    const btnVideoDuplicate = document.getElementById('btn-video-duplicate');
+    const btnVideoDelete = document.getElementById('btn-video-delete');
+
+    btnVideoDuplicate?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!currentSelectedElement || !currentSelectedElement.classList.contains('video-item')) return;
+        const el = currentSelectedElement;
+        const src = el.getAttribute('data-src');
+        const inv = getCanvasInvScale();
+        const x = (parseFloat(el.getAttribute('data-x')) || 0) + 20 * inv;
+        const y = (parseFloat(el.getAttribute('data-y')) || 0) + 20 * inv;
+        const w = el.offsetWidth;
+        const h = el.offsetHeight;
+        const angle = parseFloat(el.getAttribute('data-angle')) || 0;
+        const z = parseInt(el.style.zIndex || 10);
+        addVideoToCanvas(src, x, y, w, h, angle, z);
+    });
+
+    btnVideoDelete?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentSelectedElement) {
+            currentSelectedElement.remove();
+            currentSelectedElement = null;
+            hideVideoToolbar();
+        }
+    });
+
     document.querySelectorAll('#video-layers-menu .txt-layers-item').forEach(item => {
         item.addEventListener('click', (e) => {
             e.stopPropagation();
             if (!currentSelectedElement) return;
             const paper = document.getElementById('letter-paper');
             const allDraggables = Array.from(paper.querySelectorAll('.draggable'));
-            const action = item.getAttribute('data-layer');
+            const action = item.getAttribute('data-action');
 
             if (action === 'front') {
                 let maxZ = 0;
@@ -2178,6 +2228,7 @@ function showLinkToolbar(el) {
     if (toolbar) toolbar.classList.remove('hidden');
     if (rotateBtn) rotateBtn.classList.remove('hidden');
     positionLinkToolbar();
+    syncLinkToolbarFromSelection();
     closeAllTextToolbarMenus();
 }
 
@@ -2233,11 +2284,13 @@ function positionImageToolbar() {
 
     const rect = currentSelectedElement.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
-    const toolbarH = 36;
-    const gap = 12;
+    
+    // Dynamically calculate toolbar height or use a safer default
+    const toolbarH = toolbar.offsetHeight || 42; 
+    const gap = 20; // Increased gap to ensure it's outside the image
 
     let top;
-    if (rect.top - toolbarH - gap < 8) {
+    if (rect.top - toolbarH - gap < 10) {
         top = rect.bottom + gap;
     } else {
         top = rect.top - toolbarH - gap;
@@ -2248,7 +2301,7 @@ function positionImageToolbar() {
 
     if (rotateBtn) {
         rotateBtn.style.left = cx + 'px';
-        rotateBtn.style.top = (rect.bottom + 12) + 'px';
+        rotateBtn.style.top = (rect.bottom + 20) + 'px';
     }
 }
 
@@ -2304,6 +2357,7 @@ function showTextToolbar(el) {
     toolbar.classList.remove('hidden');
     rotateBtn.classList.remove('hidden');
     positionTextToolbar();
+    syncTextToolbarFromSelection();
 
     // Close any open dropdowns / palettes / layers
     closeAllTextToolbarMenus();
@@ -2358,9 +2412,11 @@ function initColorPickerSystem() {
         } else if (tid === 'link-text-color-btn') {
             // Text/Icon color (Link element)
             currentSelectedElement.style.color = hex;
+            currentSelectedElement.querySelector('.link-label').style.color = hex;
+            currentSelectedElement.querySelector('.link-icon').style.color = hex;
         } else if (tid === 'link-box-color-btn') {
             // Background color (Link element)
-            currentSelectedElement.style.background = hex;
+            currentSelectedElement.style.backgroundColor = hex;
         }
 
         activeColorPickerTrigger.style.backgroundColor = hex;
@@ -2534,6 +2590,55 @@ function initColorPickerSystem() {
     popup.addEventListener('click', (e) => e.stopPropagation());
 }
 
+function syncLinkToolbarFromSelection() {
+    if (!currentSelectedElement || !currentSelectedElement.classList.contains('link-item')) return;
+    
+    const bgColor = currentSelectedElement.style.backgroundColor;
+    const textColor = currentSelectedElement.style.color;
+    const fontSize = currentSelectedElement.getAttribute('data-font-size') || '16';
+
+    const btnBg = document.getElementById('link-box-color-btn');
+    const btnText = document.getElementById('link-text-color-btn');
+    const displaySize = document.getElementById('link-font-size-display');
+
+    if (btnBg) btnBg.style.backgroundColor = bgColor;
+    if (btnText) btnText.style.backgroundColor = textColor;
+    if (displaySize) displaySize.textContent = fontSize;
+}
+
+function syncTextToolbarFromSelection() {
+    if (!currentSelectedElement || !currentSelectedElement.classList.contains('text-item')) return;
+
+    const textNode = currentSelectedElement.querySelector('.editable-text');
+    if (!textNode) return;
+
+    const style = window.getComputedStyle(textNode);
+    const color = rgbToHexFromRgbString(style.color);
+    const font = style.fontFamily.replace(/['"]/g, '');
+    const size = Math.round(parseFloat(style.fontSize));
+    const isBold = style.fontWeight === 'bold' || style.fontWeight === '700' || parseInt(style.fontWeight) >= 700;
+
+    const btnColor = document.getElementById('toolbar-color-btn');
+    const displayFont = document.getElementById('font-family-display');
+    const displaySize = document.getElementById('font-size-display');
+    const btnBold = document.querySelector('.format-btn[data-format="bold"]');
+
+    if (btnColor) btnColor.style.backgroundColor = color;
+    if (displayFont) {
+        let name = font.split(',')[0].trim();
+        displayFont.textContent = name;
+    }
+    if (displaySize) displaySize.textContent = size;
+    if (btnBold) btnBold.classList.toggle('active', isBold);
+}
+
+function rgbToHexFromRgbString(rgbStr) {
+    if (!rgbStr) return '#000000';
+    const match = rgbStr.match(/\d+/g);
+    if (!match || match.length < 3) return '#000000';
+    return rgbToHex(parseInt(match[0]), parseInt(match[1]), parseInt(match[2]));
+}
+
 function initTextToolbar() {
     document.querySelectorAll('.txt-dd-trigger').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -2592,7 +2697,8 @@ function initTextToolbar() {
             const format = btn.getAttribute('data-format');
             const textNode = currentSelectedElement.querySelector('.editable-text');
             if (format === 'bold') {
-                const isBold = textNode.style.fontWeight === 'bold' || textNode.style.fontWeight === '700';
+                const currentWeight = window.getComputedStyle(textNode).fontWeight;
+                const isBold = currentWeight === 'bold' || currentWeight === '700';
                 textNode.style.fontWeight = isBold ? 'normal' : 'bold';
                 btn.classList.toggle('active', !isBold);
             }
@@ -2622,20 +2728,17 @@ function initTextToolbar() {
 
             const paper = document.getElementById('letter-paper');
             const allDraggables = Array.from(paper.querySelectorAll('.draggable'));
-            const action = item.getAttribute('data-layer');
+            const action = item.getAttribute('data-action');
 
             if (action === 'front') {
-                // Find highest z-index among siblings and go above it
-                let maxZ = 0;
+                let maxZ = 10;
                 allDraggables.forEach(el => {
                     const z = parseInt(el.style.zIndex || 10);
                     if (z > maxZ) maxZ = z;
                 });
                 currentSelectedElement.style.zIndex = maxZ + 1;
-            }
-            if (action === 'back') {
-                // Find lowest z-index among siblings and go below it
-                let minZ = Infinity;
+            } else if (action === 'back') {
+                let minZ = 10;
                 allDraggables.forEach(el => {
                     const z = parseInt(el.style.zIndex || 10);
                     if (z < minZ) minZ = z;
@@ -2644,6 +2747,10 @@ function initTextToolbar() {
             }
 
             layersMenu?.classList.add('hidden');
+            document.getElementById('link-layers-menu')?.classList.add('hidden');
+            document.getElementById('image-layers-menu')?.classList.add('hidden');
+            document.getElementById('video-layers-menu')?.classList.add('hidden');
+            document.getElementById('audio-layers-menu')?.classList.add('hidden');
         });
     });
 
