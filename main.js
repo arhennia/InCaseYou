@@ -178,7 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 5000);
 
         initEditor(currentLetter);
-        initCollectionSystem();
         initTextToolbar();
         initLinkSystem();
         initImageSystem();
@@ -1132,7 +1131,19 @@ function addLinkToCanvas(url, label, x=150, y=150, angle=0, bgColor='#333333', t
     wrapper.setAttribute('data-angle', angle);
     wrapper.setAttribute('data-font-size', fontSize);
 
-    wrapper.innerHTML = `
+    wrapper.innerHTML = `<div class="modal-footer" id="audio-modal-footer">
+                                <div class="footer-left">
+                                    <button class="btn-outline compact" id="btn-audio-replace">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                        REPLACE
+                                    </button>
+                                    <button class="btn-outline compact" id="btn-audio-re-record">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                                        RE-RECORD
+                                    </button>
+                                </div>
+                                <button class="btn-primary compact" id="btn-add-audio-confirm">ADD</button>
+                            </div>
         <svg class="link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
@@ -1356,7 +1367,6 @@ function initImageToolbar() {
 }
 
 function initAudioSystem() {
-    const addAudioBtn = document.getElementById('btn-add-audio');
     const modalOverlay = document.getElementById('audio-modal-overlay');
     const closeBtn = document.getElementById('btn-close-audio-modal');
     const fileInput = document.getElementById('input-audio-file');
@@ -1369,14 +1379,15 @@ function initAudioSystem() {
     const modalFooter = document.getElementById('audio-modal-footer');
     
     // Controls
-    const recordStartBtn = document.getElementById('btn-audio-record-start');
-    const uploadStartBtn = document.getElementById('btn-audio-upload-start');
-    const countdownCancelBtn = document.getElementById('btn-audio-countdown-cancel');
-    const stopRecordingBtn = document.getElementById('btn-audio-stop-recording');
-    const previewPlayBtn = document.getElementById('btn-audio-preview-play');
-    const replaceBtn = document.getElementById('btn-audio-replace');
-    const reRecordBtn = document.getElementById('btn-audio-re-record');
-    const confirmBtn = document.getElementById('btn-add-audio-confirm');
+    const btnRecordStart = document.getElementById('btn-audio-record-start');
+    const btnUploadStart = document.getElementById('btn-audio-upload-start');
+    const btnCountdownCancel = document.getElementById('btn-audio-countdown-cancel');
+    const btnStopRecording = document.getElementById('btn-audio-stop-recording');
+    const btnPreviewPlay = document.getElementById('btn-audio-preview-play');
+    const btnReplace = document.getElementById('btn-audio-replace');
+    const btnReRecord = document.getElementById('btn-audio-re-record');
+    const btnAddConfirm = document.getElementById('btn-add-audio-confirm');
+    const btnAddAudioSidebar = document.getElementById('btn-add-audio');
     
     // Displays
     const countdownNum = document.getElementById('audio-countdown-number');
@@ -1408,14 +1419,14 @@ function initAudioSystem() {
         countdownState.classList.add('hidden');
         recordingState.classList.add('hidden');
         previewState.classList.add('hidden');
-        modalFooter.classList.add('hidden');
+        if (modalFooter) modalFooter.classList.add('hidden');
 
         if (state === 'options') optionsState.classList.remove('hidden');
         if (state === 'countdown') countdownState.classList.remove('hidden');
         if (state === 'recording') recordingState.classList.remove('hidden');
         if (state === 'preview') {
             previewState.classList.remove('hidden');
-            modalFooter.classList.remove('hidden');
+            if (modalFooter) modalFooter.classList.remove('hidden');
         }
     }
 
@@ -1441,15 +1452,11 @@ function initAudioSystem() {
             mediaRecorder = new MediaRecorder(stream);
             audioChunks = [];
 
-            mediaRecorder.ondataavailable = (e) => {
-                audioChunks.push(e.data);
-            };
-
+            mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
             mediaRecorder.onstop = () => {
                 audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
                 audioUrl = URL.createObjectURL(audioBlob);
                 previewAudio.src = audioUrl;
-                
                 previewAudio.onloadedmetadata = () => {
                     previewDuration.textContent = formatTime(previewAudio.duration);
                     showState('preview');
@@ -1461,8 +1468,8 @@ function initAudioSystem() {
             recordingStartTime = Date.now();
             recordingInterval = setInterval(updateRecordingTimer, 1000);
         } catch (err) {
-            console.error("Error accessing microphone:", err);
-            alert("Microphone access denied or not available.");
+            console.error("Mic error:", err);
+            alert("Microphone access is required to record audio.");
             showState('options');
         }
     }
@@ -1490,151 +1497,139 @@ function initAudioSystem() {
     function stopPreview() {
         previewAudio.pause();
         previewAudio.currentTime = 0;
+        btnPreviewPlay.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
     }
 
-    if (addAudioBtn) addAudioBtn.addEventListener('click', openModal);
-    if (closeBtn) closeBtn.addEventListener('click', closeModal);
-    if (modalOverlay) {
-        modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) closeModal();
-        });
-    }
+    btnAddAudioSidebar?.addEventListener('click', openModal);
+    closeBtn?.addEventListener('click', closeModal);
+    modalOverlay?.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) closeModal();
+    });
 
-    if (recordStartBtn) recordStartBtn.addEventListener('click', startCountdown);
-    if (uploadStartBtn) uploadStartBtn.addEventListener('click', () => fileInput.click());
-    
-    if (countdownCancelBtn) {
-        countdownCancelBtn.addEventListener('click', () => {
-            clearInterval(countdownInterval);
-            showState('options');
-        });
-    }
+    btnRecordStart?.addEventListener('click', startCountdown);
+    btnUploadStart?.addEventListener('click', () => fileInput.click());
+    btnCountdownCancel?.addEventListener('click', () => {
+        clearInterval(countdownInterval);
+        showState('options');
+    });
 
-    if (stopRecordingBtn) stopRecordingBtn.addEventListener('click', stopRecording);
+    btnStopRecording?.addEventListener('click', stopRecording);
 
-    if (fileInput) {
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                if (file.size > 40 * 1024 * 1024) {
-                    alert("File too large (max 40MB)");
-                    return;
-                }
-                audioUrl = URL.createObjectURL(file);
-                previewAudio.src = audioUrl;
-                previewAudio.onloadedmetadata = () => {
-                    previewDuration.textContent = formatTime(previewAudio.duration);
-                    showState('preview');
-                };
+    fileInput?.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 40 * 1024 * 1024) {
+                alert("File is too large (Max 40MB)");
+                return;
             }
-        });
-    }
+            audioUrl = URL.createObjectURL(file);
+            previewAudio.src = audioUrl;
+            previewAudio.onloadedmetadata = () => {
+                previewDuration.textContent = formatTime(previewAudio.duration);
+                showState('preview');
+            };
+        }
+    });
 
-    if (previewPlayBtn) {
-        previewPlayBtn.addEventListener('click', () => {
-            if (previewAudio.paused) {
-                previewAudio.play();
-                previewPlayBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
-            } else {
-                previewAudio.pause();
-                previewPlayBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
-            }
-        });
-        previewAudio.onended = () => {
-            previewPlayBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
-        };
-    }
+    btnPreviewPlay?.addEventListener('click', () => {
+        if (previewAudio.paused) {
+            previewAudio.play();
+            btnPreviewPlay.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+        } else {
+            previewAudio.pause();
+            btnPreviewPlay.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+        }
+    });
 
-    if (replaceBtn) replaceBtn.addEventListener('click', () => fileInput.click());
-    if (reRecordBtn) reRecordBtn.addEventListener('click', startCountdown);
+    previewAudio.onended = () => {
+        btnPreviewPlay.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+    };
 
-    if (confirmBtn) {
-        confirmBtn.addEventListener('click', () => {
-            if (audioUrl) {
-                addAudioToCanvas(audioUrl, previewDuration.textContent);
-                closeModal();
-            }
-        });
-    }
+    btnReplace?.addEventListener('click', () => fileInput.click());
+    btnReRecord?.addEventListener('click', startCountdown);
 
-    // Audio Toolbar Layers
-    const layersToggle = document.getElementById('audio-layers-toggle-btn');
-    const layersMenu = document.getElementById('audio-layers-menu');
-    if (layersToggle && layersMenu) {
-        layersToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            closeAllTextToolbarMenus();
-            layersMenu.classList.toggle('hidden');
-        });
-    }
+    btnAddConfirm?.addEventListener('click', () => {
+        if (audioUrl) {
+            addAudioToCanvas(audioUrl, previewDuration.textContent);
+            closeModal();
+        }
+    });
 
-    document.querySelectorAll('#audio-layers-menu .txt-layers-item').forEach(item => {
-        item.addEventListener('click', (e) => {
+    // Audio Toolbar Logic
+    const audioToolbar = document.getElementById('audio-formatting-toolbar');
+    const btnAudioLayersToggle = document.getElementById('btn-audio-layers-toggle');
+    const audioLayersMenu = document.getElementById('audio-layers-menu');
+    const btnAudioDelete = document.getElementById('btn-audio-delete');
+
+    btnAudioLayersToggle?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        audioLayersMenu.classList.toggle('hidden');
+    });
+
+    audioLayersMenu?.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (!currentSelectedElement) return;
+            const action = btn.getAttribute('data-action');
             const paper = document.getElementById('letter-paper');
-            const allDraggables = Array.from(paper.querySelectorAll('.draggable'));
-            const action = item.getAttribute('data-layer');
+            const draggables = Array.from(paper.querySelectorAll('.draggable'));
 
             if (action === 'front') {
-                let maxZ = 0;
-                allDraggables.forEach(el => {
-                    const z = parseInt(el.style.zIndex || 10);
-                    if (z > maxZ) maxZ = z;
-                });
+                let maxZ = 10;
+                draggables.forEach(el => maxZ = Math.max(maxZ, parseInt(el.style.zIndex || 10)));
                 currentSelectedElement.style.zIndex = maxZ + 1;
-            } else if (action === 'back') {
-                let minZ = Infinity;
-                allDraggables.forEach(el => {
-                    const z = parseInt(el.style.zIndex || 10);
-                    if (z < minZ) minZ = z;
-                });
+            } else {
+                let minZ = 10;
+                draggables.forEach(el => minZ = Math.min(minZ, parseInt(el.style.zIndex || 10)));
                 currentSelectedElement.style.zIndex = Math.max(1, minZ - 1);
             }
-            layersMenu.classList.add('hidden');
+            audioLayersMenu.classList.add('hidden');
         });
+    });
+
+    btnAudioDelete?.addEventListener('click', () => {
+        if (currentSelectedElement) {
+            currentSelectedElement.remove();
+            currentSelectedElement = null;
+            hideAudioToolbar();
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.txt-layers-wrap')) {
+            audioLayersMenu?.classList.add('hidden');
+        }
     });
 }
 
-function addAudioToCanvas(src, durationStr, x=150, y=150, width=280, height=44, angle=0, zIndex=10) {
+function addAudioToCanvas(src, durationStr, x=150, y=150, width=280, height=48, angle=0, zIndex=10) {
     const paper = document.getElementById('letter-paper');
     if (!paper) return;
 
     const wrapper = document.createElement('div');
-    wrapper.className = 'audio-item draggable draggable-item audio-element';
+    wrapper.className = 'draggable audio-item selected';
+    wrapper.setAttribute('data-type', 'audio');
+    wrapper.setAttribute('data-src', src);
+    wrapper.setAttribute('data-duration', durationStr);
     
-    wrapper.style.left = '0';
-    wrapper.style.top = '0';
-    wrapper.style.width = width + 'px';
-    wrapper.style.height = height + 'px';
-    wrapper.style.zIndex = zIndex;
     wrapper.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
+    wrapper.style.width = `${width}px`;
+    wrapper.style.height = `${height}px`;
+    wrapper.style.zIndex = zIndex;
     
     wrapper.setAttribute('data-x', x);
     wrapper.setAttribute('data-y', y);
     wrapper.setAttribute('data-angle', angle);
-    wrapper.setAttribute('data-src', src);
-    wrapper.setAttribute('data-duration', durationStr);
 
     wrapper.innerHTML = `
         <div class="audio-item-inner">
-            <div class="audio-play-btn">
+            <button class="play-btn">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </button>
+            <div class="waveform-bars">
+                <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
             </div>
-            <div class="waveform-visual">
-                <div class="wave-bar" style="height: 12px;"></div>
-                <div class="wave-bar" style="height: 20px;"></div>
-                <div class="wave-bar" style="height: 16px;"></div>
-                <div class="wave-bar" style="height: 24px;"></div>
-                <div class="wave-bar" style="height: 14px;"></div>
-                <div class="wave-bar" style="height: 22px;"></div>
-                <div class="wave-bar" style="height: 18px;"></div>
-                <div class="wave-bar" style="height: 10px;"></div>
-                <div class="wave-bar" style="height: 16px;"></div>
-                <div class="wave-bar" style="height: 20px;"></div>
-                <div class="wave-bar" style="height: 12px;"></div>
-            </div>
-            <span class="audio-duration">${durationStr}</span>
+            <span class="duration-text">${durationStr}</span>
         </div>
     `;
 
@@ -2139,6 +2134,12 @@ function updateToolbarPosition() {
         positionTextToolbar();
     } else if (currentSelectedElement.classList.contains('link-item')) {
         positionLinkToolbar();
+    } else if (currentSelectedElement.classList.contains('image-item')) {
+        positionImageToolbar();
+    } else if (currentSelectedElement.classList.contains('audio-item')) {
+        positionAudioToolbar();
+    } else if (currentSelectedElement.classList.contains('video-item')) {
+        positionVideoToolbar();
     } else {
         positionElementActionToolbar(currentSelectedElement);
     }
