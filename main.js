@@ -343,6 +343,17 @@ function resizeMoveListener(event) {
     if (target.classList.contains('link-item')) {
         target.dataset.prevHeight = event.rect.height;
     }
+
+    // Proportional scaling for audio items
+    if (target.classList.contains('audio-item')) {
+        const inner = target.querySelector('.audio-item-inner');
+        if (inner) {
+            const baseW = 280;
+            const scale = (event.rect.width * inv) / baseW;
+            inner.style.transform = `scale(${scale})`;
+            inner.style.transformOrigin = 'center left';
+        }
+    }
 }
 
 function attachInteractToDraggable(wrapper) {
@@ -368,7 +379,13 @@ function attachInteractToDraggable(wrapper) {
             }
         })
         .resizable({
-            edges: { left: true, right: true, bottom: true, top: true },
+            // ONLY resize from handles
+            edges: { 
+                left: '.sel-handle.ml, .sel-handle.tl, .sel-handle.bl', 
+                right: '.sel-handle.mr, .sel-handle.tr, .sel-handle.br', 
+                bottom: '.sel-handle.bc, .sel-handle.bl, .sel-handle.br', 
+                top: '.sel-handle.tc, .sel-handle.tl, .sel-handle.tr' 
+            },
             modifiers: [
                 interact.modifiers.restrictEdges({ outer: 'parent' }),
                 interact.modifiers.restrictSize({ min: { width: 50, height: 30 } })
@@ -1539,19 +1556,42 @@ function initAudioSystem() {
     btnAddConfirm?.addEventListener('click', () => {
         if (audioUrl) {
             addAudioToCanvas(audioUrl, previewDuration.textContent);
+            // RESET AND CLOSE
+            audioUrl = null;
+            audioBlob = null;
             closeModal();
         }
     });
 
-    // Audio Toolbar Logic
-    const audioToolbar = document.getElementById('audio-formatting-toolbar');
-    const btnAudioLayersToggle = document.getElementById('btn-audio-layers-toggle');
-    const audioLayersMenu = document.getElementById('audio-layers-menu');
-    const btnAudioDelete = document.getElementById('btn-audio-delete');
+    btnAudioDuplicate?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!currentSelectedElement || !currentSelectedElement.classList.contains('audio-item')) return;
+        
+        const el = currentSelectedElement;
+        const inv = getCanvasInvScale();
+        const x = (parseFloat(el.getAttribute('data-x')) || 0) + 20 * inv;
+        const y = (parseFloat(el.getAttribute('data-y')) || 0) + 20 * inv;
+        const w = el.offsetWidth;
+        const h = el.offsetHeight;
+        const angle = parseFloat(el.getAttribute('data-angle')) || 0;
+        const src = el.getAttribute('data-src');
+        const dur = el.getAttribute('data-duration');
+        
+        addAudioToCanvas(src, dur, x, y, w, h, angle);
+    });
+
+    btnAudioDelete?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentSelectedElement) {
+            currentSelectedElement.remove();
+            currentSelectedElement = null;
+            hideAudioToolbar();
+        }
+    });
 
     btnAudioLayersToggle?.addEventListener('click', (e) => {
         e.stopPropagation();
-        audioLayersMenu.classList.toggle('hidden');
+        audioLayersMenu?.classList.toggle('hidden');
     });
 
     audioLayersMenu?.querySelectorAll('button').forEach(btn => {
@@ -1574,15 +1614,6 @@ function initAudioSystem() {
             audioLayersMenu.classList.add('hidden');
         });
     });
-
-    btnAudioDelete?.addEventListener('click', () => {
-        if (currentSelectedElement) {
-            currentSelectedElement.remove();
-            currentSelectedElement = null;
-            hideAudioToolbar();
-        }
-    });
-
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.txt-layers-wrap')) {
             audioLayersMenu?.classList.add('hidden');
@@ -1610,7 +1641,7 @@ function addAudioToCanvas(src, durationStr, x=150, y=150, width=280, height=48, 
     wrapper.setAttribute('data-angle', angle);
 
     wrapper.innerHTML = `
-        <div class="audio-item-inner">
+        <div class="audio-item-inner" style="width: 280px; height: 48px;">
             <button class="play-btn">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             </button>
@@ -1620,6 +1651,12 @@ function addAudioToCanvas(src, durationStr, x=150, y=150, width=280, height=48, 
             <span class="duration-text">${durationStr}</span>
         </div>
     `;
+
+    // Apply initial scale if dimensions are different from base
+    const inner = wrapper.querySelector('.audio-item-inner');
+    const scale = width / 280;
+    inner.style.transform = `scale(${scale})`;
+    inner.style.transformOrigin = 'center';
 
     paper.appendChild(wrapper);
     bindElementInteractions(wrapper);
