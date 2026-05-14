@@ -9,10 +9,10 @@
 ## Features
 
 ### Multi-Page Flow
-- **Landing Page** (`index.html`) — Enter recipient and sender names and a personal note to initialise your collection.
-- **Collection Page** (`collection.html`) — Editorial, asymmetric overview of your letter collection with an envelope card for each letter.
-- **New Letter Page** (`newletter.html`) — Set the letter's subtitle ("in case you...") with a live envelope preview.
-- **Editor Page** (`editor.html`) — The full interactive canvas workspace.
+- **Landing Page** (`pages/index.html`) — Enter recipient and sender names and a personal note to initialise your collection.
+- **Collection Page** (`pages/collection.html`) — Editorial, asymmetric overview of your letter collection with an envelope card for each letter.
+- **New Letter Page** (`pages/newletter.html`) — Set the letter's subtitle ("in case you...") with a live envelope preview.
+- **Editor Page** (`pages/editor.html`) — The full interactive canvas workspace.
 
 ### Editor Canvas
 - **Real paper texture** — Uses a custom `paper.png` background image for an authentic handmade feel.
@@ -61,16 +61,25 @@ A premium top-right navigation system for professional letter management:
 
 ```text
 InCaseYou/
-├── index.html              # Landing page
-├── collection.html         # Collection overview
-├── newletter.html          # New letter setup
-├── editor.html             # Interactive canvas editor
-├── style.css               # Global design system
-├── main.js                 # App state + editor logic
-└── images/
-    ├── envelope.png        # Envelope graphic
-    ├── paper.png           # Canvas paper texture
-    └── bgs/                # Background scenery library
+├── assets/                 # Global assets (images, audio, etc.)
+│   ├── images/             # UI graphics, paper textures, and backgrounds
+│   └── audio/              # Pre-recorded audio assets
+├── css/                    # Organized Design System
+│   ├── base.css            # Typography and variables
+│   ├── components.css      # Buttons, modals, and tooltips
+│   ├── pages.css           # Page-specific layouts
+│   └── editor.css          # Canvas and toolbar styles
+├── js/                     # Application Logic
+│   ├── modules/            # ES Modules (State, Utils, Canvas)
+│   ├── pages/              # Page-specific initialization
+│   └── main.js             # Legacy core logic (consolidated)
+├── pages/                  # Application Views
+│   ├── index.html          # Entry point (Landing Page)
+│   ├── collection.html
+│   ├── newletter.html
+│   └── editor.html
+├── index.html              # Root Redirect (to pages/index.html)
+└── style.css               # Main CSS Entry Point (Imports modules)
 ```
 
 ---
