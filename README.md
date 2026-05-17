@@ -18,12 +18,13 @@
 - **Real paper texture** — Uses a custom `paper.png` background image for an authentic handmade feel.
 - **Custom background scenery** — Curated background images or user-uploaded scenery behind the paper.
 - **Ambient environment** — Soft mint-themed header and workspace for a focused, premium desk atmosphere.
-- **No scroll** — The canvas is locked to exactly fit the viewport, ensuring a focused design experience.
+- **Photocard Frame Overlay** — A fixed, non-interactable framing element that overlaps the stationery for aesthetic depth.
+- **Advanced Workspace** — Intuitive zoom and pan mechanics via a translucent, high-fidelity floating controls bar with a unified mode-toggle pill.
 
 ### Media-Rich Elements
 Every element on the canvas behaves like a professional editor object: **draggable, resizable, rotatable, and customizable.**
 
-- **Text Elements**: Inline editing with a floating toolbar for font, size, style, and alignment.
+- **Text Elements**: Inline editing with a robust floating toolbar for font selection, color picking, size, style, alignment, and layer management.
 - **Link Pills**: Premium, pill-shaped buttons with live color pickers for both label text and button background.
 - **Audio Elements**: High-fidelity audio recording or file upload with elegant waveform visualization and an integrated preview player.
 - **Video Elements**: Drag-and-drop MP4/MOV uploads that render as interactive thumbnails on the paper.
