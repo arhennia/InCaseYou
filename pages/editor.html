@@ -117,16 +117,16 @@
                 <section class="sidebar-section">
                     <h3 class="sidebar-title">BACKGROUND</h3>
                     <div class="backgrounds-gallery" id="backgrounds-gallery">
-                        <button class="bg-swatch" data-bg="images/bgs/green blur.png" style="background-image: url('images/bgs/green blur.png'); background-size: cover;"></button>
-                        <button class="bg-swatch" data-bg="images/bgs/coastal.png" style="background-image: url('images/bgs/coastal.png'); background-size: cover;"></button>
-                        <button class="bg-swatch" data-bg="images/bgs/paper grid.png" style="background-image: url('images/bgs/paper grid.png'); background-size: cover;"></button>
-                        <button class="bg-swatch" data-bg="images/bgs/knit.png" style="background-image: url('images/bgs/knit.png'); background-size: cover;"></button>
-                        <button class="bg-swatch" data-bg="images/bgs/window.png" style="background-image: url('images/bgs/window.png'); background-size: cover;"></button>
-                        <button class="bg-swatch" data-bg="images/bgs/clouds.png" style="background-image: url('images/bgs/clouds.png'); background-size: cover;"></button>
-                        <button class="bg-swatch" data-bg="images/bgs/pink flowers.png" style="background-image: url('images/bgs/pink flowers.png'); background-size: cover;"></button>
-                        <button class="bg-swatch" data-bg="images/bgs/stormy.png" style="background-image: url('images/bgs/stormy.png'); background-size: cover;"></button>
-                        <button class="bg-swatch" data-bg="images/bgs/starry night.png" style="background-image: url('images/bgs/starry night.png'); background-size: cover;"></button>
-                        <button class="bg-swatch" data-bg="images/bgs/red plaid.png" style="background-image: url('images/bgs/red plaid.png'); background-size: cover;"></button>
+                        <button class="bg-swatch" data-bg="../assets/images/bgs/green blur.png" style="background-image: url('../assets/images/bgs/green blur.png'); background-size: cover;"></button>
+                        <button class="bg-swatch" data-bg="../assets/images/bgs/coastal.png" style="background-image: url('../assets/images/bgs/coastal.png'); background-size: cover;"></button>
+                        <button class="bg-swatch" data-bg="../assets/images/bgs/paper grid.png" style="background-image: url('../assets/images/bgs/paper grid.png'); background-size: cover;"></button>
+                        <button class="bg-swatch" data-bg="../assets/images/bgs/knit.png" style="background-image: url('../assets/images/bgs/knit.png'); background-size: cover;"></button>
+                        <button class="bg-swatch" data-bg="../assets/images/bgs/window.png" style="background-image: url('../assets/images/bgs/window.png'); background-size: cover;"></button>
+                        <button class="bg-swatch" data-bg="../assets/images/bgs/clouds.png" style="background-image: url('../assets/images/bgs/clouds.png'); background-size: cover;"></button>
+                        <button class="bg-swatch" data-bg="../assets/images/bgs/pink flowers.png" style="background-image: url('../assets/images/bgs/pink flowers.png'); background-size: cover;"></button>
+                        <button class="bg-swatch" data-bg="../assets/images/bgs/stormy.png" style="background-image: url('../assets/images/bgs/stormy.png'); background-size: cover;"></button>
+                        <button class="bg-swatch" data-bg="../assets/images/bgs/starry night.png" style="background-image: url('../assets/images/bgs/starry night.png'); background-size: cover;"></button>
+                        <button class="bg-swatch" data-bg="../assets/images/bgs/red plaid.png" style="background-image: url('../assets/images/bgs/red plaid.png'); background-size: cover;"></button>
                         <button class="bg-swatch add-bg" id="btn-add-bg">+</button>
                         <input type="file" id="bg-input" accept="image/*" hidden>
                     </div>
@@ -474,26 +474,25 @@
                             <button class="modal-close" id="btn-close-video-modal">&times;</button>
                         </div>
                         <div class="modal-body">
-                            <div id="video-upload-state" class="modal-state">
-                                <div class="video-drop-zone" id="video-drop-zone">
-                                    <div class="drop-content">
-                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="drop-icon"><rect x="2" y="7" width="15" height="13" rx="2" ry="2"/><polyline points="17 12 22 8 22 18 17 14"/></svg>
-                                        <p class="drop-text">DROP A VIDEO OR BROWSE</p>
-                                        <p class="drop-hint">MAX SIZE: 50MB</p>
-                                    </div>
-                                    
+                            <div id="video-upload-state" class="upload-zone-wrapper">
+                                <label for="input-video-file" class="image-drop-zone" id="video-drop-zone">
                                     <input type="file" id="input-video-file" accept="video/mp4, video/quicktime, video/webm, video/x-m4v" hidden>
-                                </div>
+                                    <div class="drop-icon">
+                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="15" height="13" rx="2" ry="2"/><polyline points="17 12 22 8 22 18 17 14"/></svg>
+                                    </div>
+                                    <span class="drop-text">DROP A VIDEO FILE OR BROWSE</span>
+                                    <span class="drop-hint">MAX SIZE: 10MB</span>
+                                </label>
                             </div>
-                            <div id="video-preview-state" class="modal-state hidden">
-                                <div class="video-preview-container">
+                            <div id="video-preview-state" class="image-preview-wrapper hidden">
+                                <div class="preview-container">
                                     <video id="video-upload-preview" controls></video>
                                 </div>
+                                <div class="preview-actions">
+                                    <button class="btn-outline compact" id="btn-replace-video">REPLACE</button>
+                                    <button class="btn-primary compact" id="btn-add-video-confirm">ADD</button>
+                                </div>
                             </div>
-                        </div>
-                        <div class="modal-footer hidden" id="video-modal-footer">
-                            <button class="btn-outline" id="btn-replace-video">REPLACE</button>
-                            <button class="btn-primary" id="btn-add-video-confirm">ADD</button>
                         </div>
                     </div>
                 </div>

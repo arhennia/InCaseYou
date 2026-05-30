@@ -1,3 +1,7 @@
+const assetBase = '../assets/';
+const rootBase = '../';
+const pageBase = '';
+
 document.addEventListener('DOMContentLoaded', () => {
     // Application State
     const appState = {
@@ -23,9 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const page = document.body.dataset.page;
-    const assetBase = '../assets/';
-    const rootBase = '../';
-    const pageBase = '';
 
     // --- LANDING PAGE ---
     if (page === 'landing') {
@@ -196,7 +197,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if(currentLetter.background) {
             const container = document.getElementById('editor-canvas-container');
             if (currentLetter.background.includes('url')) {
-                container.style.backgroundImage = currentLetter.background;
+                let bg = currentLetter.background;
+                if (bg.includes('images/bgs/')) {
+                    bg = bg.replace(/images\/bgs\//g, '../assets/images/bgs/');
+                }
+                container.style.backgroundImage = bg;
                 container.style.backgroundSize = 'cover';
                 container.style.backgroundPosition = 'center';
             } else {
@@ -1807,16 +1812,17 @@ function initEditorActions() {
     function togglePreviewMode() {
         const scene = document.getElementById('preview-scene');
         const paper = document.getElementById('letter-paper');
-        const editorMain = document.querySelector('.editor-canvas-area');
+        const editorMain = document.getElementById('editor-canvas-container');
         
         // Clear previous
         scene.innerHTML = '';
         
         // Clone Background (if any)
-        const bg = editorMain.querySelector('.canvas-background-layer');
-        if (bg) {
-            const bgClone = bg.cloneNode(true);
-            scene.appendChild(bgClone);
+        if (editorMain) {
+            scene.style.backgroundImage = editorMain.style.backgroundImage;
+            scene.style.backgroundColor = editorMain.style.backgroundColor;
+            scene.style.backgroundSize = 'cover';
+            scene.style.backgroundPosition = 'center';
         }
 
         // Clone Paper
@@ -1881,9 +1887,7 @@ function initEditorActions() {
     document.getElementById('btn-success-back')?.addEventListener('click', () => {
         alert("Redirecting to collection...");
     });
-}
-
-function initVideoSystem() {
+}function initVideoSystem() {
     const addVideoBtn = document.getElementById('btn-add-video');
     const modalOverlay = document.getElementById('video-modal-overlay');
     const closeBtn = document.getElementById('btn-close-video-modal');
@@ -1893,18 +1897,17 @@ function initVideoSystem() {
     // States
     const uploadState = document.getElementById('video-upload-state');
     const previewState = document.getElementById('video-preview-state');
-    const modalFooter = document.getElementById('video-modal-footer');
     
     // Controls
     const previewVideo = document.getElementById('video-upload-preview');
     const replaceBtn = document.getElementById('btn-replace-video');
     const confirmBtn = document.getElementById('btn-add-video-confirm');
 
-    let videoUrl;
+    let videoUrl = null;
 
     function openModal() {
         modalOverlay.classList.remove('hidden');
-        showState('upload');
+        resetModal();
     }
 
     function closeModal() {
@@ -1913,28 +1916,28 @@ function initVideoSystem() {
         previewVideo.src = "";
     }
 
-    function showState(state) {
-        uploadState.classList.add('hidden');
+    function resetModal() {
+        uploadState.classList.remove('hidden');
         previewState.classList.add('hidden');
-        modalFooter.classList.add('hidden');
-
-        if (state === 'upload') uploadState.classList.remove('hidden');
-        if (state === 'preview') {
-            previewState.classList.remove('hidden');
-            modalFooter.classList.remove('hidden');
+        fileInput.value = '';
+        if (videoUrl) {
+            URL.revokeObjectURL(videoUrl);
+            videoUrl = null;
         }
+        previewVideo.src = "";
     }
 
     function handleFile(file) {
-        if (!file) return;
-        if (file.size > 50 * 1024 * 1024) {
-            alert("Video too large (max 50MB)");
+        if (!file || !file.type.startsWith('video/')) return;
+        if (file.size > 10 * 1024 * 1024) {
+            alert("Video too large (max 10MB)");
             return;
         }
         
         videoUrl = URL.createObjectURL(file);
         previewVideo.src = videoUrl;
-        showState('preview');
+        uploadState.classList.add('hidden');
+        previewState.classList.remove('hidden');
     }
 
     if (addVideoBtn) addVideoBtn.addEventListener('click', openModal);
@@ -1947,16 +1950,21 @@ function initVideoSystem() {
     }
 
     if (dropZone) {
-        dropZone.addEventListener('click', () => fileInput.click());
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
-            dropZone.classList.add('drag-over');
+            dropZone.style.borderColor = 'var(--primary-brown)';
+            dropZone.style.background = 'rgba(255, 255, 255, 0.6)';
         });
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.borderColor = '';
+            dropZone.style.background = '';
+        });
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
-            dropZone.classList.remove('drag-over');
-            handleFile(e.dataTransfer.files[0]);
+            dropZone.style.borderColor = '';
+            dropZone.style.background = '';
+            const file = e.dataTransfer.files[0];
+            handleFile(file);
         });
     }
 
@@ -1964,7 +1972,7 @@ function initVideoSystem() {
         fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
     }
 
-    if (replaceBtn) replaceBtn.addEventListener('click', () => fileInput.click());
+    if (replaceBtn) replaceBtn.addEventListener('click', () => resetModal());
 
     if (confirmBtn) {
         confirmBtn.addEventListener('click', () => {
@@ -1974,6 +1982,7 @@ function initVideoSystem() {
             }
         });
     }
+
 
     // Video Toolbar Layers
     const layersToggle = document.getElementById('video-layers-toggle-btn');
