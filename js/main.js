@@ -2317,6 +2317,47 @@ function positionImageToolbar() {
     }
 }
 
+function showVideoToolbar(el) {
+    const toolbar = document.getElementById('video-formatting-toolbar');
+    const rotateBtn = document.getElementById('text-rotate-btn');
+    if (toolbar) toolbar.classList.remove('hidden');
+    if (rotateBtn) rotateBtn.classList.remove('hidden');
+    positionVideoToolbar();
+    closeAllTextToolbarMenus();
+}
+
+function hideVideoToolbar() {
+    const toolbar = document.getElementById('video-formatting-toolbar');
+    if (toolbar) toolbar.classList.add('hidden');
+}
+
+function positionVideoToolbar() {
+    const toolbar = document.getElementById('video-formatting-toolbar');
+    const rotateBtn = document.getElementById('text-rotate-btn');
+    if (!currentSelectedElement || !toolbar || toolbar.classList.contains('hidden')) return;
+
+    const rect = currentSelectedElement.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    
+    const toolbarH = toolbar.offsetHeight || 42; 
+    const gap = 20;
+
+    let top;
+    if (rect.top - toolbarH - gap < 10) {
+        top = rect.bottom + gap;
+    } else {
+        top = rect.top - toolbarH - gap;
+    }
+
+    toolbar.style.top = top + 'px';
+    toolbar.style.left = cx + 'px';
+
+    if (rotateBtn) {
+        rotateBtn.style.left = cx + 'px';
+        rotateBtn.style.top = (rect.bottom + 20) + 'px';
+    }
+}
+
 function syncLinkToolbarFromSelection() {
     if (!currentSelectedElement || !currentSelectedElement.classList.contains('link-item')) return;
     
