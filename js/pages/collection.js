@@ -19,9 +19,19 @@ export function initCollectionPage() {
         window.location.href = 'newletter.html';
     });
 
-    document.getElementById('btn-share').addEventListener('click', () => {
-        alert('Sharing functionality will be implemented with backend integration.');
+    document.getElementById('btn-share').addEventListener('click', async () => {
+        try {
+            const { shareCollection } = await import('../firebase.js');
+            const id = await shareCollection(appState);
+            const shareUrl = `${window.location.origin}/pages/collection.html?id=${id}`;
+            await navigator.clipboard.writeText(shareUrl);
+            alert(`Share link copied!\n\n${shareUrl}`);
+        } catch (e) {
+            console.error('Share failed:', e);
+            alert('Could not generate share link.');
+        }
     });
+
 
     const lettersContainer = document.getElementById('letters-container');
     const emptyState = document.getElementById('empty-state');
