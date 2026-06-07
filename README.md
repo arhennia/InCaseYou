@@ -2,7 +2,23 @@
 
 > A delicate, emotional, and highly interactive digital scrapbook and letter editor.
 
+🔗 **[Live Demo Website](https://in-case-you.vercel.app/pages/index.html)**
+
 **InCaseYou** is a pure vanilla frontend web application designed to feel like a luxury stationery workspace. It lets you build beautiful, personalised digital letter collections for the people you care about — complete with a fully interactive drag-and-drop canvas, media-rich elements, and a cinematic editorial workflow.
+
+> [!NOTE]
+> The project is officially completed and deployed! However, we will keep updating, refining, and making it even better over time.
+
+---
+
+## Preview
+
+### Main Landing Page
+![Main Landing Page](assets/images/Screenshot%202026-06-07%20141504.png)
+
+### Editor Workspace
+*Add custom text, rich media, and beautiful stickers on a realistic paper canvas.*
+![Editor Workspace](assets/images/Screenshot%202026-06-08%20013023.png)
 
 ---
 
@@ -23,19 +39,16 @@
 
 ### Media-Rich Elements
 Every element on the canvas behaves like a professional editor object: **draggable, resizable, rotatable, and customizable.**
-
 - **Text Elements**: Inline editing with a robust floating toolbar for font selection, color picking, size, style, alignment, and layer management.
 - **Link Pills**: Premium, pill-shaped buttons with live color pickers for both label text and button background.
 - **Audio Elements**: High-fidelity audio recording or file upload with elegant waveform visualization and an integrated preview player.
-- **Video Elements**: Drag-and-drop MP4/MOV uploads that render as interactive thumbnails on the paper.
-- **Sticker Library**: 6 curated categories (Ribbons, Flowers, Frames, Stamps, Papers, Memes) for personalization.
+- **Video Elements**: Drag-and-drop uploads (limit 10MB) that render as interactive video thumbnails on the paper.
+- **Sticker Library**: Curated categories (Ribbons, Flowers, Frames, Stamps, Papers, Memes) for personalization.
 
-### Editorial Action System
-A premium top-right navigation system for professional letter management:
-- **Cinematic Preview**: An immersive, full-screen mode that simulates the exact experience for the recipient, allowing for interactive media playback and link navigation.
-- **Letter Title Management**: Edit letter subtitles with a dedicated mint-themed modal and character counter.
-- **Publishing Workflow**: Manage letter states with a Publish/Unpublish toggle and elegant success notifications.
-- **Safe Deletion**: A double-confirmation deletion flow with mascot-themed modals to prevent accidental data loss.
+### Firebase Sharing & Cloud Sync
+- **Share to Cloud**: Instantly upload your entire collection state to Firebase Firestore with a single click.
+- **Automatic Copy**: Generates a unique shareable URL and copies it directly to your clipboard.
+- **Dynamic Loading**: Opening a share URL containing `?id=DOCUMENT_ID` automatically fetches the shared collection from Firestore and loads it.
 
 ### Interaction Engine
 - **Powered by `interact.js`**: Smooth, inertia-driven drag and 8-point resizing.
@@ -51,10 +64,11 @@ A premium top-right navigation system for professional letter management:
 | Structure | HTML5 (Semantic, MPA) |
 | Styling | Vanilla CSS3 (Custom Design System) |
 | Logic | Vanilla JavaScript (ES6+) |
+| Database | Firebase Cloud Firestore (NoSQL Cloud Database) |
 | Interactions | `interact.js` (CDN) |
 | Media | MediaRecorder API (Audio), HTML5 Video |
 | Fonts | Google Fonts (Gorditas, Inter, Space Mono, etc.) |
-| Persistence | `localStorage` (JSON Serialization) |
+| Persistence | `localStorage` (Local Cache) & Firestore (Cloud Storage) |
 
 ---
 
@@ -64,6 +78,8 @@ A premium top-right navigation system for professional letter management:
 InCaseYou/
 ├── assets/                 # Global assets (images, audio, etc.)
 │   ├── images/             # UI graphics, paper textures, and backgrounds
+│   │   ├── stickers/       # Decorative sticker packs
+│   │   └── bgs/            # Canvas background options
 │   └── audio/              # Pre-recorded audio assets
 ├── css/                    # Organized Design System
 │   ├── base.css            # Typography and variables
@@ -73,7 +89,8 @@ InCaseYou/
 ├── js/                     # Application Logic
 │   ├── modules/            # ES Modules (State, Utils, Canvas)
 │   ├── pages/              # Page-specific initialization
-│   └── main.js             # Legacy core logic (consolidated)
+│   ├── firebase.js         # Firebase configuration and Firestore services
+│   └── main.js             # Core page rendering and interaction logic
 ├── pages/                  # Application Views
 │   ├── index.html          # Entry point (Landing Page)
 │   ├── collection.html
@@ -95,7 +112,10 @@ No build step required. Pure HTML + JS + CSS.
    ```
 
 2. **Open locally**:
-   Use **Live Server** in VS Code or open `index.html` directly in your browser.
+   Use **Live Server** in VS Code or run a simple local HTTP server:
+   ```bash
+   npx serve .
+   ```
 
 3. **Start creating**:
    Fill in the landing form and hit **MAKE IT →** to begin.
@@ -115,8 +135,8 @@ No build step required. Pure HTML + JS + CSS.
 
 ## Known Limitations
 
-- **Storage limit**: `localStorage` has a ~5MB cap. Heavy use of media blobs (Audio/Video) may approach this limit.
-- **No backend**: All data is local to the browser. Clearing `localStorage` will erase collections.
+- **Storage limit**: `localStorage` has a ~5MB cap. Heavy use of media blobs (Audio/Video) may approach this limit locally, though Firestore sharing works independently.
+- **Public access**: Shared collections are public to anyone who possesses the share URL.
 - **Desktop preferred**: While optimized for mouse precision, basic touch support is inherited from `interact.js`.
 
 ---
