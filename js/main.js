@@ -2,7 +2,7 @@ const assetBase = '../assets/';
 const rootBase = '../';
 const pageBase = '';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Application State
     const appState = {
         for: '',
@@ -27,6 +27,32 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const page = document.body.dataset.page;
+
+    // Check for shared URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedId = urlParams.get('id');
+
+    if (sharedId) {
+        try {
+            const { loadCollection } = await import('./firebase.js');
+            const data = await loadCollection(sharedId);
+            if (data) {
+                Object.assign(appState, data);
+                saveState();
+                
+                // If we're not already on the collection page, redirect to it
+                if (page !== 'collection') {
+                    window.location.href = pageBase + 'collection.html';
+                    return; // Stop execution of the rest of DOMContentLoaded
+                }
+            } else {
+                alert("Shared collection not found or is invalid.");
+            }
+        } catch (e) {
+            console.error("Failed to load shared collection:", e);
+            alert("Error loading shared collection.");
+        }
+    }
 
     // --- LANDING PAGE ---
     if (page === 'landing') {
@@ -80,9 +106,38 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = 'newletter.html';
         });
 
-        document.getElementById('btn-share').addEventListener('click', () => {
-            alert('Sharing functionality will be implemented with backend integration.');
-        });
+        const btnShare = document.getElementById('btn-share');
+        if (btnShare) {
+            btnShare.addEventListener('click', async () => {
+                const originalText = btnShare.textContent;
+                btnShare.textContent = 'SHARING...';
+                btnShare.disabled = true;
+
+                try {
+                    const { shareCollection } = await import('./firebase.js');
+                    const docId = await shareCollection(appState);
+                    
+                    let baseUrl = window.location.origin + window.location.pathname;
+                    if (baseUrl.endsWith('collection.html')) {
+                        baseUrl = baseUrl.replace('collection.html', 'index.html');
+                    }
+                    const shareUrl = `${baseUrl}?id=${docId}`;
+                    
+                    await navigator.clipboard.writeText(shareUrl);
+                    
+                    btnShare.textContent = 'COPIED!';
+                    setTimeout(() => {
+                        btnShare.textContent = originalText;
+                        btnShare.disabled = false;
+                    }, 2000);
+                } catch (e) {
+                    console.error("Share failed", e);
+                    alert("Failed to share collection. Please try again.");
+                    btnShare.textContent = originalText;
+                    btnShare.disabled = false;
+                }
+            });
+        }
 
         const lettersContainer = document.getElementById('letters-container');
         const emptyState = document.getElementById('empty-state');
@@ -1906,8 +1961,12 @@ function initEditorActions() {
     let videoUrl = null;
 
     function openModal() {
-        modalOverlay.classList.remove('hidden');
-        resetModal();
+        try {
+            if (modalOverlay) modalOverlay.classList.remove('hidden');
+            resetModal();
+        } catch (err) {
+            console.error("Error opening video modal:", err);
+        }
     }
 
     function closeModal() {
@@ -1917,14 +1976,18 @@ function initEditorActions() {
     }
 
     function resetModal() {
-        uploadState.classList.remove('hidden');
-        previewState.classList.add('hidden');
-        fileInput.value = '';
-        if (videoUrl) {
-            URL.revokeObjectURL(videoUrl);
-            videoUrl = null;
+        try {
+            if (uploadState) uploadState.classList.remove('hidden');
+            if (previewState) previewState.classList.add('hidden');
+            if (fileInput) fileInput.value = '';
+            if (videoUrl) {
+                URL.revokeObjectURL(videoUrl);
+                videoUrl = null;
+            }
+            if (previewVideo) previewVideo.src = "";
+        } catch (err) {
+            console.error("Error in video resetModal:", err);
         }
-        previewVideo.src = "";
     }
 
     function handleFile(file) {
@@ -1935,12 +1998,17 @@ function initEditorActions() {
         }
         
         videoUrl = URL.createObjectURL(file);
-        previewVideo.src = videoUrl;
-        uploadState.classList.add('hidden');
-        previewState.classList.remove('hidden');
+        if (previewVideo) previewVideo.src = videoUrl;
+        if (uploadState) uploadState.classList.add('hidden');
+        if (previewState) previewState.classList.remove('hidden');
     }
 
-    if (addVideoBtn) addVideoBtn.addEventListener('click', openModal);
+    if (addVideoBtn) {
+        addVideoBtn.addEventListener('click', (e) => {
+            console.log("Video button clicked!");
+            openModal();
+        });
+    }
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
     
     if (modalOverlay) {
