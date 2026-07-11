@@ -1,13 +1,13 @@
 # InCaseYou
 
-> A delicate, emotional, and highly interactive digital scrapbook and letter editor.
+> An elegant, deeply personal, and highly interactive digital scrapbook and letter editor.
 
 🔗 **[Live Demo Website](https://in-case-you.vercel.app/pages/index.html)**
 
-**InCaseYou** is a pure vanilla frontend web application designed to feel like a luxury stationery workspace. It lets you build beautiful, personalised digital letter collections for the people you care about — complete with a fully interactive drag-and-drop canvas, media-rich elements, and a cinematic editorial workflow.
+**InCaseYou** is a vanilla frontend web application designed to emulate a luxury stationery workspace. It empowers you to craft beautiful, personalized digital letter collections for the people you care about—featuring a fully interactive drag-and-drop canvas, rich media support, and a seamless editorial workflow.
 
 > [!NOTE]
-> The project is officially completed and deployed! However, we will keep updating, refining, and making it even better over time.
+> The project is live and deployed! We will continue to refine, update, and add new features to enhance the experience over time.
 
 ---
 
@@ -25,7 +25,7 @@
 ## Features
 
 ### Multi-Page Flow
-- **Landing Page** (`pages/index.html`) — Enter recipient and sender names and a personal note to initialise your collection.
+- **Landing Page** (`pages/index.html`) — Enter the recipient and sender names along with a personal note to initialize your collection.
 - **Collection Page** (`pages/collection.html`) — Editorial, asymmetric overview of your letter collection with an envelope card for each letter.
 - **New Letter Page** (`pages/newletter.html`) — Set the letter's subtitle ("in case you...") with a live envelope preview.
 - **Editor Page** (`pages/editor.html`) — The full interactive canvas workspace.
@@ -34,7 +34,7 @@
 - **Real paper texture** — Uses a custom `paper.png` background image for an authentic handmade feel.
 - **Custom background scenery** — Curated background images or user-uploaded scenery behind the paper.
 - **Ambient environment** — Soft mint-themed header and workspace for a focused, premium desk atmosphere.
-- **Photocard Frame Overlay** — A fixed, non-interactable framing element that overlaps the stationery for aesthetic depth.
+- **Photocard Frame Overlay** — A fixed, non-interactive framing element that overlaps the stationery to provide aesthetic depth.
 - **Advanced Workspace** — Intuitive zoom and pan mechanics via a translucent, high-fidelity floating controls bar with a unified mode-toggle pill.
 
 ### Media-Rich Elements
@@ -124,12 +124,12 @@ No build step required. Pure HTML + JS + CSS.
 
 ## Design Philosophy
 
-**InCaseYou** is designed to feel like opening a beautifully arranged stationery desk, not a productivity app.
+**InCaseYou** is designed to evoke the feeling of opening a beautifully arranged stationery desk, rather than a traditional productivity app.
 
 - **Palette**: Mint green (`#E0F5EE`), warm muted browns (`#866144`, `#968571`), and soft cream paper whites.
-- **Typography**: `Inter` for structured UI. `Gorditas` and `Great Vibes` for editorial headings. `Space Mono` for status indicators.
-- **Layout**: Asymmetric, editorial compositions with intentional whitespace and minimalist navigation.
-- **Interactions**: Subtle hover micro-animations, glassmorphism toolbars, and a clean pill-shaped floating control bar.
+- **Typography**: `Inter` for structured UI elements, `Gorditas` and `Great Vibes` for editorial headings, and `Space Mono` for status indicators.
+- **Layout**: Asymmetric, editorial compositions featuring intentional whitespace and minimalist navigation.
+- **Interactions**: Subtle hover micro-animations, glassmorphism toolbars, and a sleek pill-shaped floating control bar.
 
 ---
 
