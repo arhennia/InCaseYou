@@ -34,7 +34,7 @@
 - **Real paper texture** — Uses a custom `paper.png` background image for an authentic handmade feel.
 - **Custom background scenery** — Curated background images or user-uploaded scenery behind the paper.
 - **Ambient environment** — Soft mint-themed header and workspace for a focused, premium desk atmosphere.
-- **Photocard Frame Overlay** — A fixed, non-interactable framing element that overlaps the stationery for aesthetic depth.
+- **Photocard Frame Overlay** — A fixed, non-interactive framing element that overlaps the stationery to provide aesthetic depth.
 - **Advanced Workspace** — Intuitive zoom and pan mechanics via a translucent, high-fidelity floating controls bar with a unified mode-toggle pill.
 
 ### Media-Rich Elements
