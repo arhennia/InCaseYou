@@ -2,12 +2,14 @@
 
 > A cozy, interactive digital scrapbook and letter editor made with love. 💌
 
-🔗 **[Live Demo Website](https://in-case-you.vercel.app/pages/index.html)**
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-in--case--you.vercel.app-2ea44f?style=flat-square&logo=vercel)](https://in-case-you.vercel.app/pages/index.html)
+[![Tech Stack](https://img.shields.io/badge/Tech%20Stack-Vanilla%20JS%20%7C%20Firebase-informational?style=flat-square)](https://in-case-you.vercel.app/pages/index.html)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
-**InCaseYou** is a sweet little vanilla web app designed to feel just like sitting at a comfy desk with your favorite stationery. It lets you put together beautiful, personal digital letter collections for the people you care about most! You get a fully interactive drag-and-drop canvas, fun media elements, and a really smooth editing flow.
+**InCaseYou** is a sweet little vanilla web app designed to feel just like sitting at a comfy desk with your favorite stationery. It lets you put together beautiful, personal digital letter collections for the people you care about most! You get a fully interactive drag-and-drop canvas, rich media elements, and a smooth editing flow.
 
 > [!NOTE]
-> The project is officially live! 🎉 But we'll definitely keep tinkering with it, adding fun stuff, and making it even better over time.
+> The project is officially live! 🎉 Continuous improvements, exciting media tools, and aesthetic packs will be added over time.
 
 ---
 
@@ -26,8 +28,8 @@
 
 ### How it Flows
 - **Landing Page** (`pages/index.html`) — Pop in the recipient and sender names along with a sweet little note to kick things off.
-- **Collection Page** (`pages/collection.html`) — A lovely, relaxed overview of your letter collection, showing a neat envelope for each one.
-- **New Letter Page** (`pages/newletter.html`) — Pick a subtitle for your letter (like "in case you miss me...") and see a live preview of the envelope.
+- **Collection Page** (`pages/collection.html`) — A relaxed, lovely overview of your letter collection, showing a neat envelope for each one.
+- **New Letter Page** (`pages/newletter.html`) — Pick a subtitle for your letter (like *"in case you miss me..."*) and see a live preview of the envelope.
 - **Editor Page** (`pages/editor.html`) — The main event! Your fully interactive canvas to get creative.
 
 ### Editor Canvas
@@ -48,7 +50,7 @@ Every element on the canvas behaves like a professional editor object: **draggab
 ### Firebase Sharing & Cloud Sync
 - **Share to Cloud**: Instantly upload your entire collection state to Firebase Firestore with a single click.
 - **Automatic Copy**: Generates a unique shareable URL and copies it directly to your clipboard.
-- **Dynamic Loading**: Opening a share URL containing `?id=DOCUMENT_ID` automatically fetches the shared collection from Firestore and loads it.
+- **Dynamic Loading**: Opening a share URL containing `?id=DOCUMENT_ID` automatically fetches the shared collection from Firestore and renders it live.
 
 ### Interaction Engine
 - **Powered by `interact.js`**: Smooth, inertia-driven drag and 8-point resizing.
@@ -67,7 +69,7 @@ Every element on the canvas behaves like a professional editor object: **draggab
 | Database | Firebase Cloud Firestore (NoSQL Cloud Database) |
 | Interactions | `interact.js` (CDN) |
 | Media | MediaRecorder API (Audio), HTML5 Video |
-| Fonts | Google Fonts (Gorditas, Inter, Space Mono, etc.) |
+| Fonts | Google Fonts (Gorditas, Inter, Space Mono, Great Vibes) |
 | Persistence | `localStorage` (Local Cache) & Firestore (Cloud Storage) |
 
 ---
@@ -76,71 +78,25 @@ Every element on the canvas behaves like a professional editor object: **draggab
 
 ```text
 InCaseYou/
-├── assets/                 # Global assets (images, audio, etc.)
-│   ├── images/             # UI graphics, paper textures, and backgrounds
-│   │   ├── stickers/       # Decorative sticker packs
-│   │   └── bgs/            # Canvas background options
-│   └── audio/              # Pre-recorded audio assets
-├── css/                    # Organized Design System
-│   ├── base.css            # Typography and variables
-│   ├── components.css      # Buttons, modals, and tooltips
-│   ├── pages.css           # Page-specific layouts
-│   └── editor.css          # Canvas and toolbar styles
-├── js/                     # Application Logic
-│   ├── modules/            # ES Modules (State, Utils, Canvas)
-│   ├── pages/              # Page-specific initialization
-│   ├── firebase.js         # Firebase configuration and Firestore services
-│   └── main.js             # Core page rendering and interaction logic
-├── pages/                  # Application Views
-│   ├── index.html          # Entry point (Landing Page)
+├── assets/                  # Global assets (images, audio, etc.)
+│   ├── images/              # UI graphics, paper textures, and backgrounds
+│   │   ├── stickers/        # Decorative sticker packs
+│   │   └── bgs/             # Canvas background options
+│   └── audio/               # Pre-recorded audio assets
+├── css/                     # Organized Design System
+│   ├── base.css             # Typography and variables
+│   ├── components.css       # Buttons, modals, and tooltips
+│   ├── pages.css            # Page-specific layouts
+│   └── editor.css           # Canvas and toolbar styles
+├── js/                      # Application Logic
+│   ├── modules/             # ES Modules (State, Utils, Canvas)
+│   ├── pages/               # Page-specific initialization
+│   ├── firebase.js          # Firebase configuration and Firestore services
+│   └── main.js              # Core page rendering and interaction logic
+├── pages/                   # Application Views
+│   ├── index.html           # Entry point (Landing Page)
 │   ├── collection.html
 │   ├── newletter.html
 │   └── editor.html
-├── index.html              # Root Redirect (to pages/index.html)
-└── style.css               # Main CSS Entry Point (Imports modules)
-```
-
----
-
-## Getting Started
-
-No build step required. Pure HTML + JS + CSS.
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/yourusername/incaseyou.git
-   ```
-
-2. **Open locally**:
-   Use **Live Server** in VS Code or run a simple local HTTP server:
-   ```bash
-   npx serve .
-   ```
-
-3. **Start creating**:
-   Fill in the landing form and hit **MAKE IT →** to begin.
-
----
-
-## Design Philosophy
-
-**InCaseYou** is all about vibes. It’s meant to feel like opening up a beautifully arranged desk full of craft supplies, rather than using a rigid productivity tool.
-
-- **Palette**: Calming mint green (`#E0F5EE`), warm cozy browns (`#866144`, `#968571`), and soft creamy paper whites.
-- **Typography**: `Inter` to keep things readable, `Gorditas` and `Great Vibes` for those pretty, expressive headings, and `Space Mono` for little status updates.
-- **Layout**: Relaxed, magazine-style layouts with plenty of breathing room and simple navigation so you never feel lost.
-- **Interactions**: Cute little hover animations, frosted-glass toolbars, and a handy floating control pill to keep things clean.
-
----
-
-## Known Limitations
-
-- **Storage limit**: `localStorage` has a ~5MB cap. Heavy use of media blobs (Audio/Video) may approach this limit locally, though Firestore sharing works independently.
-- **Public access**: Shared collections are public to anyone who possesses the share URL.
-- **Desktop preferred**: While optimized for mouse precision, basic touch support is inherited from `interact.js`.
-
----
-
-## License
-
-Open-source. See `LICENSE` for details.
+├── index.html               # Root Redirect (to pages/index.html)
+└── style.css                # Main CSS Entry Point (Imports modules)
