@@ -3262,3 +3262,165 @@ button {
 .audio-item-inner .duration-text {
     font-size: 0.75rem;
 }
+
+/* Landing — mint stationery collage */
+body[data-page="landing"] {
+    --landing-ink: #6f4b34;
+    --landing-brown: #7a5340;
+    --landing-muted: #8d6b52;
+    background-color: #e4f4ec;
+    background-image: url("assets/images/Mint%20Pastel%20Stationery%20Collage.png");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    min-height: 100vh;
+}
+
+body[data-page="landing"] .view {
+    min-height: 100vh;
+    padding: 4.5rem 2rem 3rem;
+}
+
+body[data-page="landing"] .page-wrapper {
+    max-width: 640px;
+}
+
+body[data-page="landing"] .narrow-content {
+    max-width: 600px;
+    align-items: center;
+}
+
+body[data-page="landing"] .absolute-logo {
+    top: 30px;
+    left: 42px;
+    font-size: 1.85rem;
+    color: var(--landing-brown);
+    opacity: 0.92;
+    z-index: 2;
+}
+
+body[data-page="landing"] .landing-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1.7rem;
+}
+
+body[data-page="landing"] .landing-bow {
+    width: 58px;
+    height: 34px;
+    color: var(--landing-brown);
+    margin-bottom: 0.2rem;
+}
+
+body[data-page="landing"] .landing-hero .main-heading {
+    margin: 0;
+    font-size: clamp(2.7rem, 4.8vw, 3.65rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    text-align: center;
+    color: var(--landing-ink);
+}
+
+body[data-page="landing"] .heading-rule {
+    display: block;
+    width: 22px;
+    height: 2.5px;
+    margin-top: 0.55rem;
+    border-radius: 999px;
+    background: var(--landing-brown);
+}
+
+body[data-page="landing"] .form-container {
+    width: 100%;
+}
+
+body[data-page="landing"] .input-row {
+    gap: 1.6rem;
+    margin-bottom: 1.15rem;
+}
+
+body[data-page="landing"] label {
+    color: #7b5842;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    opacity: 1;
+    margin-bottom: 0.42rem;
+}
+
+body[data-page="landing"] .label-row {
+    margin-bottom: 0.42rem;
+}
+
+body[data-page="landing"] .char-counter {
+    color: #a88872;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    opacity: 1;
+}
+
+body[data-page="landing"] .input-shell {
+    position: relative;
+}
+
+body[data-page="landing"] .input-glyph {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    transform: translateY(-50%);
+    color: #8a6852;
+    pointer-events: none;
+}
+
+body[data-page="landing"] input {
+    height: 48px;
+    padding: 0 1.15rem 0 40px;
+    background: rgba(255, 255, 255, 0.28);
+    border: 1.5px solid #c4a592;
+    color: var(--landing-ink);
+    font-size: 0.92rem;
+}
+
+body[data-page="landing"] input::placeholder {
+    color: #b08974;
+}
+
+body[data-page="landing"] input:focus {
+    border-color: var(--landing-brown);
+    background: rgba(255, 255, 255, 0.42);
+}
+
+body[data-page="landing"] .btn-primary {
+    background-color: var(--landing-brown);
+    color: #f6f1ea;
+    margin-top: 1.45rem;
+    padding: 0.82rem 1.65rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+}
+
+body[data-page="landing"] .btn-primary:hover {
+    background-color: #684632;
+    box-shadow: 0 8px 18px rgba(111, 75, 52, 0.18);
+}
+
+@media (max-width: 768px) {
+    body[data-page="landing"] .absolute-logo {
+        top: 18px;
+        left: 20px;
+        font-size: 1.5rem;
+    }
+
+    body[data-page="landing"] .view {
+        padding: 5rem 1.25rem 2rem;
+    }
+
+    body[data-page="landing"] .landing-hero .main-heading {
+        font-size: 2.45rem;
+    }
+}
